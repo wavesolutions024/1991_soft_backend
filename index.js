@@ -13,6 +13,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cookiesParser());
+app.use("/images", express.static("images"))
 
 
 app.use(

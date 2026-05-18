@@ -17,8 +17,8 @@ name VARCHAR(255) NOT NULL,
 email VARCHAR(255) UNIQUE,
 gender ENUM('Male','Female','Other') NOT NULL,
 mobileno VARCHAR(10) NOT NULL,
-address VARCHAR(255) NOT NULL,
-dob VARCHAR(20) NOT NULL,
+address VARCHAR(255) ,
+dob VARCHAR(20) ,
 status ENUM('Active','Deactive') DEFAULT 'Active',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`
