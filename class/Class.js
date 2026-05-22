@@ -23,3 +23,10 @@ export class clients {
         this.tattooImage = clients.tattooImage;
     }
 }
+
+export class artists {
+    constructor(artist){
+        this.artistName = artist.artistNumber;
+
+    }
+}
