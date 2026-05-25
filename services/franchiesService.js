@@ -5,8 +5,7 @@ const passLength = 10;
 
 export const registerFranchies = async (franch) => {
   try {
-    const hashPassword = await bcrypt.hash(franch.password,passLength);
-
+    const hashPassword = await bcrypt.hash(franch.password, passLength);
 
     const query = `INSERT INTO franchies (franchies,address,username,password) VALUES (?,?,?,?)`;
     const values = [
@@ -17,9 +16,6 @@ export const registerFranchies = async (franch) => {
     ];
 
     const [response] = await database.query(query, values);
-
-
-   
 
     return {
       success: true,
@@ -34,26 +30,34 @@ export const registerFranchies = async (franch) => {
   }
 };
 
-export const loginFranchies = async (username,password) => {
+export const loginFranchies = async (username, password) => {
   try {
     const query = `SELECT * FROM franchies WHERE username = ?`;
     const value = [username];
 
-    const [existUser] = await database.query(query, value);
+    let existUser;
+
+    [existUser] = await database.query(query, value);
 
     // Check user exists
     if (existUser.length === 0) {
-      return {
-        message: "User not found",
-      };
+      [existUser] = await database.query(
+        `SELECT * FROM tattooArtists WHERE username = ?`,[username]
+      );
     }
 
     const user = existUser[0];
 
+    if(!user){
+      return {
+        message:"User not found"
+      }
+    }
+
     // Compare password
     const encryptPass = await bcrypt.compare(
       password, // plain password
-      user.password     // hashed password from DB
+      user.password, // hashed password from DB
     );
 
     if (!encryptPass) {
@@ -63,14 +67,13 @@ export const loginFranchies = async (username,password) => {
     }
 
     return {
-      success:true,
+      success: true,
       message: "Login successfully",
       user,
     };
-
   } catch (error) {
     return {
-      success:false,
+      success: false,
       message: error.message,
     };
   }

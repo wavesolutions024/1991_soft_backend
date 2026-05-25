@@ -7,6 +7,7 @@ import { createConnection } from "./db/database.js";
 import { createALLtabels } from "./table/Table.js";
 import { franchRoute } from "./routes/franchiesRoute.js";
 import { clientRoute } from "./routes/clientsRoute.js";
+import { artistsRoute } from "./routes/aristsRoute.js";
 dotenv.config();
 
 
@@ -38,7 +39,8 @@ const port = process.env.PORT;
 
 
 app.use("/api/franchies", franchRoute);
-app.use("/api/client",clientRoute)
+app.use("/api/client",clientRoute);
+app.use("/api/artists",artistsRoute)
 
 app.use("/", (req,res)=>{
     res.send("Hello 1991 tattoo studio")

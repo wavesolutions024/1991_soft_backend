@@ -1,14 +1,17 @@
 import { database } from "../db/database.js";
+import bcrypt from "bcrypt"
 
-export const addArtist = async (payload, franchies_code) => {
+const passLength = 10
+export const addArtistService = async (payload, franchies_code) => {
   try {
+    const hashPassword =  await bcrypt.hash(payload.password,passLength)
     const query = `INSERT INTO tattooArtists (franchiesCode,artistName,artistNumber,username,password) VALUES (?,?,?,?,?)`;
     const values = [
       franchies_code,
       payload.artistName,
       payload.artistNumber,
       payload.username,
-      payload.password,
+      hashPassword,
     ];
 
     const [response] = await database.query(query, values);
