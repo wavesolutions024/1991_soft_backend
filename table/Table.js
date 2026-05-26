@@ -17,6 +17,7 @@ name VARCHAR(255) NOT NULL,
 email VARCHAR(255) UNIQUE,
 gender ENUM('Male','Female','Other') NOT NULL,
 mobileno VARCHAR(10) NOT NULL,
+tattooArtist VARCHAR(255) DEFAULT ('Admin') ,
 address VARCHAR(255) ,
 dob VARCHAR(20) ,
 status ENUM('Active','Deactive') DEFAULT 'Active',
@@ -45,6 +46,10 @@ password VARCHAR(255) NOT NULL,
 role ENUM('Artist') DEFAULT 'Artist',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
+)`
+
+const consentForm = `CREATE TABLE IF NOT EXISTS consent(
+
 )`
 
 
