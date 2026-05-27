@@ -30,3 +30,14 @@ export class artists {
     this.password = artist.password;
   }
 }
+
+
+export class consent {
+  constructor(consent){
+    this.clientId = consent.clientId;
+    this.idProofType = consent.idProofType,
+    this.idProofNumber = consent.idProofNumber,
+    this.idProofImage = consent.idProofImage,
+    this.signature = consent.signature
+  }
+}

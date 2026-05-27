@@ -2,13 +2,16 @@ import { database } from "../db/database.js";
 
 export const addClientsService = async (payload, image, franchiesCode) => {
   try {
-    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,address,dob) VALUES (?,?,?,    ?,?,?,?)`;
+    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,clientType,referallName,address,dob) VALUES (?,?,?,?,?, ?,?,?,?,?)`;
     const values = [
       franchiesCode,
       payload.name,
       payload.gender,
       payload.email,
       payload.mobileno,
+      payload.tattooArtist,
+      payload.clientType,
+      payload.referallName,
       payload.address,
       payload.dob,
     ];
@@ -41,13 +44,16 @@ export const addClientsService = async (payload, image, franchiesCode) => {
 
 export const editClientService = async (payload, image, id) => {
   try {
-    const query = `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,dob=? WHERE id = ?`;
+    const query = `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?, referallName=?,dob=? WHERE id = ?`;
     const values = [
       payload.name,
       payload.gender,
       payload.email,
       payload.mobileno,
       payload.address,
+      payload.tattooArtist,
+      payload.clientType,
+      payload.referallName,
       payload.dob,
       id,
     ];
@@ -63,19 +69,21 @@ export const editClientService = async (payload, image, id) => {
       id,
     ];
 
-    const [oldImageData] = await database.query(`SELECT tattooImage FROM tattooDetails WHERE clientId = ?`,[id]);
+    const [oldImageData] = await database.query(
+      `SELECT tattooImage FROM tattooDetails WHERE clientId = ?`,
+      [id],
+    );
 
     const oldImage = oldImageData[0]?.tattooImage;
 
-    const finaleImage = image === null ? oldImage : image
+    const finaleImage = image === null ? oldImage : image;
 
-    await database.query(imgQuery,imgValues);
+    await database.query(imgQuery, imgValues);
 
     return {
-      success:true,
-      message:"Update Successfully"
-    }
-
+      success: true,
+      message: "Update Successfully",
+    };
   } catch (error) {
     return {
       success: false,

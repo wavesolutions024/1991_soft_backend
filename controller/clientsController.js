@@ -3,12 +3,14 @@ import {
   addClientsService,
   editClientService,
 } from "../services/clientService.js";
+import dotenv from "dotenv";
+dotenv.config()
 
 export const addClinets = async (req, res) => {
   try {
     const franchiesCode = req.user.id;
     const payload = JSON.parse(req.body.clients);
-    const baseUrl = "http://localhost:3003/images";
+    const baseUrl = process.env.BASE_URL;
 
     const imageFile = req.files?.tattooImage?.[0];
 
