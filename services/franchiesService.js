@@ -39,14 +39,22 @@ export const loginFranchies = async (username, password) => {
 
     [existUser] = await database.query(query, value);
 
+    let franchiesId ;
+
     // Check user exists
     if (existUser.length === 0) {
       [existUser] = await database.query(
         `SELECT * FROM tattooArtists WHERE username = ?`,[username]
       );
+
+      franchiesId = existUser[0].franchiesCode
+    }else{
+      franchiesId : existUser[0].id
     }
 
     const user = existUser[0];
+
+
 
     if(!user){
       return {
@@ -70,6 +78,7 @@ export const loginFranchies = async (username, password) => {
       success: true,
       message: "Login successfully",
       user,
+      franchiesId
     };
   } catch (error) {
     return {

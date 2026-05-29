@@ -7,7 +7,7 @@ const passRound = 10;
 export const addArtist = async (req, res) => {
   try {
     const { artistName, artistNumber, username, password } = req.body;
-    const id = req.user.id;
+    const id = req.user.franchiesId;
 
     if (!artistName) {
       return res.status(400).json({

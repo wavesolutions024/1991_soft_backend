@@ -25,3 +25,36 @@ export const addConsent = async (payload) => {
     };
   }
 };
+
+export const editConsent = async (id, payload) => {
+  try {
+    const query = `UPDATE consent SET clientId=?, idProofType=?, idProofNumber=?, idProofImage=?, signature=? WHERE id=?`;
+    const values = [
+      payload.clientId,
+      payload.idProofType,
+      payload.idProofNumber,
+      payload.idProofImage,
+      payload.signature,
+      id,
+    ];
+
+    const [response] = await database.query(query, values);
+
+    if (response.affectedRows === 0) {
+      return {
+        success: false,
+        message: "Consent form not found",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Consent Form updated successfully",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};

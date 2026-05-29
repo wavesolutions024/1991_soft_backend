@@ -4,11 +4,11 @@ import {
   editClientService,
 } from "../services/clientService.js";
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
 export const addClinets = async (req, res) => {
   try {
-    const franchiesCode = req.user.id;
+    const franchiesCode = req.user.franchiesId;
     const payload = JSON.parse(req.body.clients);
     const baseUrl = process.env.BASE_URL;
 
@@ -18,7 +18,17 @@ export const addClinets = async (req, res) => {
 
     const response = await addClientsService(payload, ttImage, franchiesCode);
 
+    const pdata = JSON.stringify(payload);
+
+
+
+   
+
     if (response.success) {
+           await database.query(
+      `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
+      [payload.username, "Clients", "add", pdata],
+    );
       return res.status(200).json({
         message: response.message,
       });
@@ -110,7 +120,13 @@ export const editClient = async (req, res) => {
 
     const response = await editClientService(payload, ttImage, clientId);
 
+    const pdata = JSON.stringify(payload)
+
     if (response.success) {
+              await database.query(
+      `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
+      [payload.username, "Clients", "edit", pdata],
+    );
       return res.status(200).json({
         message: response.message,
       });

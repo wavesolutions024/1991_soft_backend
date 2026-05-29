@@ -70,7 +70,11 @@ export const loginFranchiesCtrl = async (req, res) => {
 
     if (response.success) {
       const token = jwt.sign(
-        { id: response?.user?.id, role: response?.user?.role },
+        {
+          id: response?.user?.id,
+          franchiesId: response?.franchiesId,
+          role: response?.user?.role,
+        },
         process.env.JWT_SECRET,
         {
           expiresIn: "1d",
@@ -113,25 +117,50 @@ export const getUserDataViaToken = async (req, res) => {
   try {
     const id = req.user.id;
 
+    
+
     if (!id) {
       return res.status(401).json({
         message: "you are not login",
       });
     }
 
-    const [response] = await database.query(
+    let response;
+
+    [response] = await database.query(
       `SELECT id, username,franchies,address,role FROM franchies WHERE id = ?`,
       [id],
     );
 
+    if (response.length === 0) {
+      [response] = await database.query(
+        `SELECT id,franchiesCode, artistName,artistNumber,username,role FROM tattooArtists WHERE id = ?`,
+        [id],
+      );
+    }
 
     return res.status(200).json({
-      data:response[0]
-    })
-
+      data: response[0],
+    });
   } catch (error) {
     return res.status(500).json({
-      message:error.message
-    })
+      message: error.message,
+    });
+  }
+};
+
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+
+
+    return res.status(200).json({
+      message: "logout successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };

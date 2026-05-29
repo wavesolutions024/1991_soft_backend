@@ -61,6 +61,15 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (clientId) REFERENCES clients(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
 
+const logs = `CREATE TABLE IF NOT EXISTS logs(
+id INT AUTO_INCREMENT PRIMARY KEY,
+user VARCHAR(255) NOT NULL,
+service VARCHAR(255) NOT NULL,
+action VARCHAR(255) NOT NULL,
+tableNames TEXT NOT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`
+
 const createTable = async (table, query) => {
   try {
     await database.query(query);
@@ -77,4 +86,5 @@ export const createALLtabels = async () => {
   await createTable("tattooDetails", tattooDetails);
   await createTable("tattooArtists", tattooArtists);
   await createTable("consentForm", consentForm);
+  await createTable("logs", logs);
 };

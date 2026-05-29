@@ -1,5 +1,10 @@
 import express from "express";
-import { addConsentCtrl, getAllConsent } from "../controller/ConsentCtrl.js";
+import {
+  addConsentCtrl,
+  editConsentCtrl,
+  getAllConsent,
+  getConsentById,
+} from "../controller/ConsentCtrl.js";
 import { token } from "../utils/Token.js";
 import { upload } from "../utils/multer.js";
 
@@ -15,4 +20,15 @@ consentRoute.post(
   token,
   addConsentCtrl,
 );
+consentRoute.put(
+  "/editConsent",
+  upload.fields([
+    { name: "idproof", maxCount: 1 },
+    { name: "signature", maxCount: 1 },
+  ]),
+  token,
+  editConsentCtrl,
+);
+
 consentRoute.get("/getAllConsent", token, getAllConsent);
+consentRoute.get("/getConsentById", token, getConsentById);
