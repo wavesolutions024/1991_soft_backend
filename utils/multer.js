@@ -6,8 +6,8 @@ import fs from "fs"
 const storage = multer.diskStorage({
 destination: (req,file,cb)=>{
     // const folder = "/var/www/images/1991tattoo";
-    const folder = "D:/Ketan/git/1991_soft_backend/images";
-
+    // const folder = "D:/Ketan/git/1991_soft_backend/images";
+    const folder = "/Users/ketandudka/Desktop/Wave_works/1991_soft_backend/images";
 
     if(!fs.existsSync(folder)){
         fs.mkdirSync(folder, {recursive:true})

@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const database = mysql.createPool({
-  host: process.env.HOST,
-  user: process.env.USER,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
+  host:"localhost",
+  user:"root",
+  password:  "ketan566123",
+  database: "1991_backend",
 });
 
 export const createConnection = async () => {

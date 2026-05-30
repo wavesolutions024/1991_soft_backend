@@ -49,8 +49,9 @@ export const loginFranchies = async (username, password) => {
 
       franchiesId = existUser[0].franchiesCode
     }else{
-      franchiesId : existUser[0].id
+      franchiesId = existUser[0].id
     }
+
 
     const user = existUser[0];
 
