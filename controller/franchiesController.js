@@ -71,7 +71,7 @@ export const loginFranchiesCtrl = async (req, res) => {
     if (response.success) {
       const token = jwt.sign(
         {
-          id: response?.user?.id,
+          id: response?.id,
           franchiesId: response?.franchiesId,
           role: response?.user?.role,
         },
@@ -127,16 +127,18 @@ export const getUserDataViaToken = async (req, res) => {
 
     let response;
 
-    [response] = await database.query(
+     [response] = await database.query(
+        `SELECT id,franchiesCode, artistName,artistNumber,username,role FROM tattooArtists WHERE artistCode = ?`,
+        [id],
+      );
+
+
+
+    if (response.length === 0) {
+         [response] = await database.query(
       `SELECT id, username,franchies,address,role FROM franchies WHERE id = ?`,
       [id],
     );
-
-    if (response.length === 0) {
-      [response] = await database.query(
-        `SELECT id,franchiesCode, artistName,artistNumber,username,role FROM tattooArtists WHERE id = ?`,
-        [id],
-      );
     }
 
     return res.status(200).json({

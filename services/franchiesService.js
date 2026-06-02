@@ -39,28 +39,31 @@ export const loginFranchies = async (username, password) => {
 
     [existUser] = await database.query(query, value);
 
-    let franchiesId ;
+    let franchiesId;
+    let id
 
     // Check user exists
     if (existUser.length === 0) {
       [existUser] = await database.query(
-        `SELECT * FROM tattooArtists WHERE username = ?`,[username]
+        `SELECT * FROM tattooArtists WHERE username = ?`,
+        [username],
       );
 
-      franchiesId = existUser[0].franchiesCode
-    }else{
-      franchiesId = existUser[0].id
+      franchiesId = existUser[0].franchiesCode;
+      id =  existUser[0].artistCode
+    } else {
+      franchiesId = existUser[0].id;
+      id = existUser[0].id
     }
-
 
     const user = existUser[0];
 
+    
 
-
-    if(!user){
+    if (!user) {
       return {
-        message:"User not found"
-      }
+        message: "User not found",
+      };
     }
 
     // Compare password
@@ -79,7 +82,8 @@ export const loginFranchies = async (username, password) => {
       success: true,
       message: "Login successfully",
       user,
-      franchiesId
+      franchiesId,
+      id
     };
   } catch (error) {
     return {

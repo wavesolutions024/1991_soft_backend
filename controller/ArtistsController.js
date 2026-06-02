@@ -37,8 +37,33 @@ export const addArtist = async (req, res) => {
         message: "Username already registed",
       });
     }
+    
 
-    const model = new artists({ artistName, artistNumber, username, password });
+    // generate artistCode like emp199101, emp199102 ...
+    // prefix is kept as 'emp1991' to match requested format
+    const prefix = `emp1991`;
+
+    // find latest artistCode for this franchise with the same prefix
+    const [latestRows] = await database.query(
+      `SELECT artistCode FROM tattooArtists WHERE artistCode LIKE ? AND franchiesCode = ? ORDER BY id DESC LIMIT 1`,
+      [`${prefix}%`, id],
+    );
+
+    let nextNumber = 1;
+    if (latestRows.length > 0) {
+      const latestCode = latestRows[0].artistCode || "";
+      const match = latestCode.match(/(\d+)$/);
+      if (match) {
+        const lastNum = parseInt(match[0], 10);
+        if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+      }
+    }
+
+    // pad to at least 2 digits (01, 02, ...)
+    const suffix = String(nextNumber).padStart(2, "0");
+    const artistCode = `${prefix}${suffix}`;
+
+    const model = new artists({ artistName, artistNumber, username, password, artistCode });
 
     const response = await addArtistService(model, id);
 

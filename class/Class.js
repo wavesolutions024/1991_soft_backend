@@ -24,7 +24,8 @@ export class clients {
 
 export class artists {
   constructor(artist) {
-    this.artistName = artist.artistNumber;
+    this.artistName = artist.artistName;
+    this.artistCode = artist.artistCode;
     this.artistNumber = artist.artistNumber;
     this.username = artist.username;
     this.password = artist.password;

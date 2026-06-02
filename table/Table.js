@@ -40,6 +40,7 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
 const tattooArtists = `CREATE TABLE IF NOT EXISTS tattooArtists (
 id INT AUTO_INCREMENT PRIMARY KEY,
+artistCode VARCHAR(20) NOT NULL,
 franchiesCode INT NOT NULL,
 artistName VARCHAR(255) NOT NULL,
 artistNumber VARCHAR(20) NOT NULL,

@@ -5,9 +5,10 @@ const passLength = 10
 export const addArtistService = async (payload, franchies_code) => {
   try {
     const hashPassword =  await bcrypt.hash(payload.password,passLength)
-    const query = `INSERT INTO tattooArtists (franchiesCode,artistName,artistNumber,username,password) VALUES (?,?,?,?,?)`;
+    const query = `INSERT INTO tattooArtists (franchiesCode,artistCode,artistName,artistNumber,username,password) VALUES (?,?,?,?,?,?)`;
     const values = [
       franchies_code,
+      payload.artistCode,
       payload.artistName,
       payload.artistNumber,
       payload.username,
