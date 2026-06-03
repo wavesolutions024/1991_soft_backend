@@ -71,6 +71,11 @@ tableNames TEXT NOT NULL,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`
 
+// const appoinments = `CREATE TABLE IF NOT EXISTS appoinments (
+// id INT AUTO_INCREMENT PRIMARY KEY,
+
+// ) `
+
 const createTable = async (table, query) => {
   try {
     await database.query(query);
