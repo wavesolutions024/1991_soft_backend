@@ -72,11 +72,11 @@ export const getDashboardStats = async (franchiesId) => {
       : 0;
 
     // Total Consultants (count of tattooArtists)
-    const [totalConsultantsResult] = await database.query(
+    const [totalArtistsResult] = await database.query(
       `SELECT COUNT(*) as totalConsultants FROM tattooArtists WHERE franchiesCode = ?`,
       [franchiesId]
     );
-    const totalConsultants = totalConsultantsResult[0]?.totalConsultants || 0;
+    const totalConsultants = totalArtistsResult[0]?.totalConsultants || 0;
 
     // Consultants last month
     const [lastMonthConsultantsResult] = await database.query(

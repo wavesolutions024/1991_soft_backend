@@ -49,19 +49,28 @@ export const addClinets = async (req, res) => {
 
 export const getAllClients = async (req, res) => {
   try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
+    const offset = (page - 1) * size;
+
     const [response] = await database.query(
-      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattooDetails AS td ON cl.id = td.clientId`,
+      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattooDetails AS td ON cl.id = td.clientId LIMIT ? OFFSET ?`,
+      [size, offset],
     );
 
-    if (response.length === 0) {
-      return res.status(400).json({
-        message: "Clients are not available",
-      });
-    }
+    const [[{ total }]] = await database.query(
+      `SELECT COUNT(*) AS total FROM clients AS cl LEFT JOIN tattooDetails AS td ON cl.id = td.clientId`,
+    );
 
     return res.status(200).json({
       message: "success",
       data: response,
+      pagination: {
+        page,
+        size,
+        total,
+        totalPages: Math.ceil(total / size),
+      },
     });
   } catch (error) {
     return res.status(500).json({

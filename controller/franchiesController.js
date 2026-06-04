@@ -81,22 +81,22 @@ export const loginFranchiesCtrl = async (req, res) => {
         },
       );
 
-      // res.cookie("token", token, {
-      //   httpOnly: true,
-      //   secure: false, // OK for localhost/Postman
-      //   sameSite: "lax", // REQUIRED
-      //   path: "/",
-      //   maxAge: 24 * 60 * 60 * 1000,
-      // });
-
-        res.cookie("token", token, {
+      res.cookie("token", token, {
         httpOnly: true,
-        secure: true, // REQUIRED
-        sameSite: "None",
-        domain: ".1991tattoos.com",
+        secure: false, // OK for localhost/Postman
+        sameSite: "lax", // REQUIRED
         path: "/",
-        maxAge: 1 * 24 * 60 * 60 * 1000,
+        maxAge: 24 * 60 * 60 * 1000,
       });
+
+      //   res.cookie("token", token, {
+      //   httpOnly: true,
+      //   secure: true, // REQUIRED
+      //   sameSite: "None",
+      //   domain: ".1991tattoos.com",
+      //   path: "/",
+      //   maxAge: 1 * 24 * 60 * 60 * 1000,
+      // });
 
       return res.status(200).json({
         message: response.message,
