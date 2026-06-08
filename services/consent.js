@@ -1,3 +1,4 @@
+import { del } from "@vercel/blob";
 import { database } from "../db/database.js";
 
 export const addConsent = async (payload) => {

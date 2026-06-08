@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { consent } from "../class/Class.js";
 import { addConsent, editConsent } from "../services/consent.js";
 import { database } from "../db/database.js";
+import { put } from "@vercel/blob";
 dotenv.config();
 
 export const addConsentCtrl = async (req, res) => {
