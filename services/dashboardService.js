@@ -5,7 +5,7 @@ export const getDashboardStats = async (franchiesId) => {
     // Total Clients for this franchise
     const [totalClientsResult] = await database.query(
       `SELECT COUNT(*) as totalClients FROM clients WHERE franchiesCode = ?`,
-      [franchiesId]
+      [franchiesId],
     );
     const totalClients = totalClientsResult[0]?.totalClients || 0;
 
@@ -15,66 +15,87 @@ export const getDashboardStats = async (franchiesId) => {
        WHERE franchiesCode = ? 
        AND created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) 
        AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)`,
-      [franchiesId]
+      [franchiesId],
     );
     const lastMonthClients = lastMonthClientsResult[0]?.lastMonthClients || 1;
-    const clientGrowth = totalClients > 0 
-      ? parseFloat(((totalClients - lastMonthClients) / lastMonthClients * 100).toFixed(1)) 
-      : 0;
+    const clientGrowth =
+      totalClients > 0
+        ? parseFloat(
+            (
+              ((totalClients - lastMonthClients) / lastMonthClients) *
+              100
+            ).toFixed(1),
+          )
+        : 0;
 
     // Today's Appointments (assuming appointments are tracked via clientType or a separate table)
     // If there's no appointments table, we'll count clients created today or use tattooDetails as proxy
     const [todayAppointmentsResult] = await database.query(
       `SELECT COUNT(DISTINCT td.clientId) as todayAppointments 
-       FROM tattooDetails td
+       FROM tattoodetails td
        JOIN clients c ON td.clientId = c.id
        WHERE c.franchiesCode = ? 
        AND DATE(td.created_at) = CURDATE()`,
-      [franchiesId]
+      [franchiesId],
     );
-    const todayAppointments = todayAppointmentsResult[0]?.todayAppointments || 0;
+    const todayAppointments =
+      todayAppointmentsResult[0]?.todayAppointments || 0;
 
     // Today's appointments last month
     const [lastMonthAppointmentsResult] = await database.query(
       `SELECT COUNT(DISTINCT td.clientId) as lastMonthAppointments 
-       FROM tattooDetails td
+       FROM tattoodetails td
        JOIN clients c ON td.clientId = c.id
        WHERE c.franchiesCode = ? 
        AND DATE(td.created_at) = DATE_SUB(CURDATE(), INTERVAL 30 DAY)`,
-      [franchiesId]
+      [franchiesId],
     );
-    const lastMonthAppointments = lastMonthAppointmentsResult[0]?.lastMonthAppointments || 1;
-    const appointmentGrowth = todayAppointments > 0 
-      ? parseFloat(((todayAppointments - lastMonthAppointments) / lastMonthAppointments * 100).toFixed(1)) 
-      : 0;
+    const lastMonthAppointments =
+      lastMonthAppointmentsResult[0]?.lastMonthAppointments || 1;
+    const appointmentGrowth =
+      todayAppointments > 0
+        ? parseFloat(
+            (
+              ((todayAppointments - lastMonthAppointments) /
+                lastMonthAppointments) *
+              100
+            ).toFixed(1),
+          )
+        : 0;
 
     // Total Enquiries (count of clients with referralName or clientType = 'Enquiry')
     const [totalEnquiriesResult] = await database.query(
-      `SELECT COUNT(*) as totalEnquiries FROM clients 
-       WHERE franchiesCode = ? 
-       AND (clientType = 'Enquiry' OR referallName IS NOT NULL)`,
-      [franchiesId]
+      `SELECT COUNT(*) as totalEnquiries FROM enquiry 
+       WHERE franchiesCode = ? `,
+
+      [franchiesId],
     );
     const totalEnquiries = totalEnquiriesResult[0]?.totalEnquiries || 0;
 
     // Enquiries last month
     const [lastMonthEnquiriesResult] = await database.query(
-      `SELECT COUNT(*) as lastMonthEnquiries FROM clients 
+      `SELECT COUNT(*) as lastMonthEnquiries FROM enquiry 
        WHERE franchiesCode = ? 
-       AND (clientType = 'Enquiry' OR referallName IS NOT NULL)
        AND created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) 
        AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)`,
-      [franchiesId]
+      [franchiesId],
     );
-    const lastMonthEnquiries = lastMonthEnquiriesResult[0]?.lastMonthEnquiries || 1;
-    const enquiryGrowth = totalEnquiries > 0 
-      ? parseFloat(((totalEnquiries - lastMonthEnquiries) / lastMonthEnquiries * 100).toFixed(1)) 
-      : 0;
+    const lastMonthEnquiries =
+      lastMonthEnquiriesResult[0]?.lastMonthEnquiries || 1;
+    const enquiryGrowth =
+      totalEnquiries > 0
+        ? parseFloat(
+            (
+              ((totalEnquiries - lastMonthEnquiries) / lastMonthEnquiries) *
+              100
+            ).toFixed(1),
+          )
+        : 0;
 
     // Total Consultants (count of tattooArtists)
     const [totalArtistsResult] = await database.query(
       `SELECT COUNT(*) as totalConsultants FROM tattooArtists WHERE franchiesCode = ?`,
-      [franchiesId]
+      [franchiesId],
     );
     const totalConsultants = totalArtistsResult[0]?.totalConsultants || 0;
 
@@ -84,46 +105,54 @@ export const getDashboardStats = async (franchiesId) => {
        WHERE franchiesCode = ? 
        AND created_at >= DATE_SUB(NOW(), INTERVAL 60 DAY) 
        AND created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)`,
-      [franchiesId]
+      [franchiesId],
     );
-    const lastMonthConsultants = lastMonthConsultantsResult[0]?.lastMonthConsultants || 1;
-    const consultantGrowth = totalConsultants > 0 
-      ? parseFloat(((totalConsultants - lastMonthConsultants) / lastMonthConsultants * 100).toFixed(1)) 
-      : 0;
+    const lastMonthConsultants =
+      lastMonthConsultantsResult[0]?.lastMonthConsultants || 1;
+    const consultantGrowth =
+      totalConsultants > 0
+        ? parseFloat(
+            (
+              ((totalConsultants - lastMonthConsultants) /
+                lastMonthConsultants) *
+              100
+            ).toFixed(1),
+          )
+        : 0;
 
     return {
       success: true,
       data: {
         totalClients: {
           count: totalClients,
-          growth: `${clientGrowth >= 0 ? '+' : ''}${clientGrowth}%`,
+          growth: `${clientGrowth >= 0 ? "+" : ""}${clientGrowth}%`,
           growthValue: clientGrowth,
-          label: "last month"
+          label: "last month",
         },
         todayAppointments: {
           count: todayAppointments,
-          growth: `${appointmentGrowth >= 0 ? '+' : ''}${appointmentGrowth}%`,
+          growth: `${appointmentGrowth >= 0 ? "+" : ""}${appointmentGrowth}%`,
           growthValue: appointmentGrowth,
-          label: "last month"
+          label: "last month",
         },
         totalEnquiries: {
           count: totalEnquiries,
-          growth: `${enquiryGrowth >= 0 ? '+' : ''}${enquiryGrowth}%`,
+          growth: `${enquiryGrowth >= 0 ? "+" : ""}${enquiryGrowth}%`,
           growthValue: enquiryGrowth,
-          label: "last month"
+          label: "last month",
         },
         totalConsultants: {
           count: totalConsultants,
-          growth: `${consultantGrowth >= 0 ? '+' : ''}${consultantGrowth}%`,
+          growth: `${consultantGrowth >= 0 ? "+" : ""}${consultantGrowth}%`,
           growthValue: consultantGrowth,
-          label: "last month"
-        }
-      }
+          label: "last month",
+        },
+      },
     };
   } catch (error) {
     return {
       success: false,
-      message: error.message
+      message: error.message,
     };
   }
 };
@@ -131,7 +160,20 @@ export const getDashboardStats = async (franchiesId) => {
 export const getMonthlyClientGrowth = async (franchiesId) => {
   try {
     const monthlyData = [];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
 
     for (let i = 11; i >= 0; i--) {
       const monthDate = new Date();
@@ -144,12 +186,12 @@ export const getMonthlyClientGrowth = async (franchiesId) => {
          WHERE franchiesCode = ? 
          AND YEAR(created_at) = ? 
          AND MONTH(created_at) = ?`,
-        [franchiesId, year, month]
+        [franchiesId, year, month],
       );
 
       monthlyData.push({
         month: months[month - 1],
-        activeClients: result[0]?.activeClients || 0
+        activeClients: result[0]?.activeClients || 0,
       });
     }
 
@@ -159,18 +201,22 @@ export const getMonthlyClientGrowth = async (franchiesId) => {
         title: "12-Month Client Growth",
         subtitle: "Monthly active clients",
         yoyGrowth: "+18% YoY",
-        chartData: monthlyData
-      }
+        chartData: monthlyData,
+      },
     };
   } catch (error) {
     return {
       success: false,
-      message: error.message
+      message: error.message,
     };
   }
 };
 
-export const getClientCalendar = async (franchiesId, month = null, year = null) => {
+export const getClientCalendar = async (
+  franchiesId,
+  month = null,
+  year = null,
+) => {
   try {
     // Set default to current month/year if not provided
     const today = new Date();
@@ -181,7 +227,7 @@ export const getClientCalendar = async (franchiesId, month = null, year = null) 
     if (targetMonth < 1 || targetMonth > 12) {
       return {
         success: false,
-        message: "Invalid month. Month should be between 1 and 12"
+        message: "Invalid month. Month should be between 1 and 12",
       };
     }
 
@@ -197,32 +243,36 @@ export const getClientCalendar = async (franchiesId, month = null, year = null) 
         td.created_at as appointmentDate,
         td.tattoodetails as description,
         DAY(td.created_at) as dayOfMonth
-      FROM tattooDetails td
+      FROM tattoodetails td
       JOIN clients c ON td.clientId = c.id
       WHERE c.franchiesCode = ? 
       AND DATE(td.created_at) >= ?
       AND DATE(td.created_at) <= ?
       ORDER BY td.created_at ASC`,
-      [franchiesId, firstDay.toISOString().split('T')[0], lastDay.toISOString().split('T')[0]]
+      [
+        franchiesId,
+        firstDay.toISOString().split("T")[0],
+        lastDay.toISOString().split("T")[0],
+      ],
     );
 
     // Group by day
     const calendarData = {};
-    appointmentsResult.forEach(apt => {
+    appointmentsResult.forEach((apt) => {
       const day = apt.dayOfMonth;
       if (!calendarData[day]) {
         calendarData[day] = [];
       }
       calendarData[day].push({
         clientName: apt.clientName,
-        description: apt.description || "Tattoo appointment"
+        description: apt.description || "Tattoo appointment",
       });
     });
 
     // Build calendar response for the entire month
     const calendarEvents = [];
     const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     // Get day of week for first day of month
     const firstDayOfWeek = new Date(targetYear, targetMonth - 1, 1).getDay();
@@ -232,7 +282,7 @@ export const getClientCalendar = async (franchiesId, month = null, year = null) 
       calendarEvents.push({
         dayOfMonth: null,
         dayName: dayNames[i],
-        appointments: []
+        appointments: [],
       });
     }
 
@@ -244,12 +294,24 @@ export const getClientCalendar = async (franchiesId, month = null, year = null) 
       calendarEvents.push({
         dayOfMonth: day,
         dayName: dayName,
-        appointments: calendarData[day] || []
+        appointments: calendarData[day] || [],
       });
     }
 
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                       'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
 
     return {
       success: true,
@@ -258,13 +320,13 @@ export const getClientCalendar = async (franchiesId, month = null, year = null) 
         subtitle: "Client meetings, tasks, and deadlines",
         month: monthNames[targetMonth - 1],
         year: targetYear,
-        calendarEvents: calendarEvents
-      }
+        calendarEvents: calendarEvents,
+      },
     };
   } catch (error) {
     return {
       success: false,
-      message: error.message
+      message: error.message,
     };
   }
 };
@@ -275,10 +337,14 @@ export const getCompleteDashboard = async (franchiesId) => {
     const growthResponse = await getMonthlyClientGrowth(franchiesId);
     const calendarResponse = await getClientCalendar(franchiesId);
 
-    if (!statsResponse.success || !growthResponse.success || !calendarResponse.success) {
+    if (
+      !statsResponse.success ||
+      !growthResponse.success ||
+      !calendarResponse.success
+    ) {
       return {
         success: false,
-        message: "Error fetching dashboard data"
+        message: "Error fetching dashboard data",
       };
     }
 
@@ -287,13 +353,13 @@ export const getCompleteDashboard = async (franchiesId) => {
       data: {
         stats: statsResponse.data,
         monthlyGrowth: growthResponse.data,
-        calendar: calendarResponse.data
-      }
+        calendar: calendarResponse.data,
+      },
     };
   } catch (error) {
     return {
       success: false,
-      message: error.message
+      message: error.message,
     };
   }
 };

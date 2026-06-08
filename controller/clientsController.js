@@ -54,12 +54,12 @@ export const getAllClients = async (req, res) => {
     const offset = (page - 1) * size;
 
     const [response] = await database.query(
-      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattooDetails AS td ON cl.id = td.clientId LIMIT ? OFFSET ?`,
+      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId LIMIT ? OFFSET ?`,
       [size, offset],
     );
 
     const [[{ total }]] = await database.query(
-      `SELECT COUNT(*) AS total FROM clients AS cl LEFT JOIN tattooDetails AS td ON cl.id = td.clientId`,
+      `SELECT COUNT(*) AS total FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId`,
     );
 
     return res.status(200).json({
@@ -92,7 +92,7 @@ export const getClientById = async (req, res) => {
     }
 
     const [response] = await database.query(
-      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattooDetails AS td ON cl.id = td.clientId WHERE cl.id = ?`,
+      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId WHERE cl.id = ?`,
       [id],
     );
 

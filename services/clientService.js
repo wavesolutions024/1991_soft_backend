@@ -19,7 +19,7 @@ export const addClientsService = async (payload, image, franchiesCode) => {
     const [clients] = await database.query(query, values);
 
     //  tattoo details
-    const ttQuery = `INSERT INTO tattooDetails (clientId,tattoodetails,inch,price,tattooImage) VALUES(?,?,?,?,?)`;
+    const ttQuery = `INSERT INTO tattoodetails (clientId,tattoodetails,inch,price,tattooImage) VALUES(?,?,?,?,?)`;
     const ttValues = [
       clients.insertId,
       payload.tattoodetails,
@@ -60,7 +60,7 @@ export const editClientService = async (payload, image, id) => {
 
     await database.query(query, values);
 
-    const imgQuery = `UPDATE tattooDetails SET tattoodetails=?,inch=?,price=?,tattooImage=? WHERE clientId=?`;
+    const imgQuery = `UPDATE tattoodetails SET tattoodetails=?,inch=?,price=?,tattooImage=? WHERE clientId=?`;
     const imgValues = [
       payload.tattoodetails,
       payload.inch,
@@ -70,7 +70,7 @@ export const editClientService = async (payload, image, id) => {
     ];
 
     const [oldImageData] = await database.query(
-      `SELECT tattooImage FROM tattooDetails WHERE clientId = ?`,
+      `SELECT tattooImage FROM tattoodetails WHERE clientId = ?`,
       [id],
     );
 

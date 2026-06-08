@@ -27,7 +27,7 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
 
-const tattooDetails = `CREATE TABLE IF NOT EXISTS tattooDetails(
+const tattooDetails = `CREATE TABLE IF NOT EXISTS tattoodetails(
 id INT AUTO_INCREMENT PRIMARY KEY,
 clientId INT NOT NULL,
 tattoodetails VARCHAR(255),
@@ -69,7 +69,23 @@ service VARCHAR(255) NOT NULL,
 action VARCHAR(255) NOT NULL,
 tableNames TEXT NOT NULL,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)`
+)`;
+
+const enquiry = `CREATE TABLE IF NOT EXISTS enquiry (
+id INT AUTO_INCREMENT PRIMARY KEY,
+franchiesCode INT NOT NULL,
+name VARCHAR(255) NOT NULL,
+email VARCHAR(255),
+mobileNo VARCHAR(20) NOT NULL,
+gender VARCHAR(20),
+tattooStyle VARCHAR(100),
+tattooDescription TEXT,
+budget DECIMAL(10,2),
+status ENUM('pending','contacted','booked','completed','cancelled') DEFAULT 'pending',
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
+)`;
 
 // const appoinments = `CREATE TABLE IF NOT EXISTS appoinments (
 // id INT AUTO_INCREMENT PRIMARY KEY,
@@ -89,8 +105,9 @@ const createTable = async (table, query) => {
 export const createALLtabels = async () => {
   await createTable("franchies", franchies);
   await createTable("clients", clients);
-  await createTable("tattooDetails", tattooDetails);
+  await createTable("tattoodetails", tattooDetails);
   await createTable("tattooArtists", tattooArtists);
   await createTable("consentForm", consentForm);
   await createTable("logs", logs);
+  await createTable("enquiry", enquiry);
 };

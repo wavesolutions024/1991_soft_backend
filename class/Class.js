@@ -32,13 +32,24 @@ export class artists {
   }
 }
 
-
 export class consent {
-  constructor(consent){
+  constructor(consent) {
     this.clientId = consent.clientId;
-    this.idProofType = consent.idProofType,
-    this.idProofNumber = consent.idProofNumber,
-    this.idProofImage = consent.idProofImage,
-    this.signature = consent.signature
+    ((this.idProofType = consent.idProofType),
+      (this.idProofNumber = consent.idProofNumber),
+      (this.idProofImage = consent.idProofImage),
+      (this.signature = consent.signature));
+  }
+}
+
+export class enquiry {
+  constructor(enquiry) {
+    ((this.name = enquiry.name),
+      (this.email = enquiry.email),
+      (this.mobileNo = enquiry.mobileNo),
+      (this.gender = enquiry.gender),
+      (this.tattooStyle = enquiry.tattooStyle),
+      (this.tattooDescription = enquiry.tattooDescription),
+      (this.budget = enquiry.budget));
   }
 }
