@@ -17,13 +17,13 @@ export const addConsentCtrl = async (req, res) => {
     const signature = req.files?.signature?.[0];
     // const signatureFile = signature ? `${baseUrl}/${signature.filename}` : null;
 
-       const idprooFileblob = await put(idProof.originalname, idProof.buffer, {
+       const idprooFileblob = await put(idProof?.originalname, idProof?.buffer, {
       access: "public",
-      contentType: idProof.mimetype,
+      contentType: idProof?.mimetype,
     });
-       const signaturelob = await put(signature.originalname, signature.buffer, {
+       const signaturelob = await put(signature?.originalname, signature?.buffer, {
       access: "public",
-      contentType: signature.mimetype,
+      contentType: signature?.mimetype,
     });
 
 
