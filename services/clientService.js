@@ -1,5 +1,5 @@
 import { database } from "../db/database.js";
-
+import {  del } from "@vercel/blob";
 export const addClientsService = async (payload, image, franchiesCode) => {
   try {
     const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,clientType,referallName,address,dob) VALUES (?,?,?,?,?, ?,?,?,?,?)`;
@@ -42,48 +42,59 @@ export const addClientsService = async (payload, image, franchiesCode) => {
   }
 };
 
-export const editClientService = async (payload, image, id) => {
+export const editClientService = async (payload, newImageUrl, id) => {
   try {
-    const query = `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?, referallName=?,dob=? WHERE id = ?`;
-    const values = [
-      payload.name,
-      payload.gender,
-      payload.email,
-      payload.mobileno,
-      payload.address,
-      payload.tattooArtist,
-      payload.clientType,
-      payload.referallName,
-      payload.dob,
-      id,
-    ];
-
-    await database.query(query, values);
-
-    const imgQuery = `UPDATE tattoodetails SET tattoodetails=?,inch=?,price=?,tattooImage=? WHERE clientId=?`;
-    const imgValues = [
-      payload.tattoodetails,
-      payload.inch,
-      payload.price,
-      image,
-      id,
-    ];
-
-    const [oldImageData] = await database.query(
-      `SELECT tattooImage FROM tattoodetails WHERE clientId = ?`,
-      [id],
+    await database.query(
+      `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=? WHERE id=?`,
+      [
+        payload.name,
+        payload.gender,
+        payload.email,
+        payload.mobileno,
+        payload.address,
+        payload.tattooArtist,
+        payload.clientType,
+        payload.referallName,
+        payload.dob,
+        id,
+      ]
     );
 
-    const oldImage = oldImageData[0]?.tattooImage;
+    const [[oldData]] = await database.query(
+      `SELECT tattooImage FROM tattoodetails WHERE clientId=?`,
+      [id]
+    );
 
-    const finaleImage = image === null ? oldImage : image;
+    const oldImage = oldData?.tattooImage;
 
-    await database.query(imgQuery, imgValues);
+    // 🔥 DELETE OLD IMAGE IF NEW ONE EXISTS
+    if (newImageUrl && oldImage) {
+      try {
+        const pathname = new URL(oldImage).pathname;
+        await del(pathname);
+      } catch (err) {
+        console.log("Blob delete failed:", err.message);
+      }
+    }
+
+    const finalImage = newImageUrl || oldImage;
+
+    await database.query(
+      `UPDATE tattoodetails SET tattoodetails=?,inch=?,price=?,tattooImage=? WHERE clientId=?`,
+      [
+        payload.tattoodetails,
+        payload.inch,
+        payload.price,
+        finalImage,
+        id,
+      ]
+    );
 
     return {
       success: true,
-      message: "Update Successfully",
+      message: "Updated Successfully",
     };
+
   } catch (error) {
     return {
       success: false,

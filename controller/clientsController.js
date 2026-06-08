@@ -57,7 +57,8 @@ export const getAllClients = async (req, res) => {
     const offset = (page - 1) * size;
 
     const [response] = await database.query(
-      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId LIMIT ? OFFSET ?`,
+      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails 
+      AS td ON cl.id = td.clientId  ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
       [size, offset],
     );
 
@@ -121,37 +122,36 @@ export const getClientById = async (req, res) => {
 export const editClient = async (req, res) => {
   try {
     const { clientId } = req.query;
-
     const payload = JSON.parse(req.body.clients);
-
-    const baseUrl = "http://localhost:3003/images";
 
     const imageFile = req.files?.tattooImage?.[0];
 
-    const ttImage = imageFile ? `${baseUrl}/${imageFile.filename}` : null;
+    let blobUrl = null;
 
-    const response = await editClientService(payload, ttImage, clientId);
+    if (imageFile) {
+      const blob = await put(imageFile.originalname, imageFile.buffer, {
+        access: "public",
+        contentType: imageFile.mimetype,
+      });
 
-    const pdata = JSON.stringify(payload);
+      blobUrl = blob.url;
+    }
+
+    const response = await editClientService(payload, blobUrl, clientId);
 
     if (response.success) {
       await database.query(
         `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Clients", "edit", pdata],
+        [payload.username, "Clients", "edit", JSON.stringify(payload)]
       );
-      return res.status(200).json({
-        message: response.message,
-      });
-    } else {
-      return res.status(400).json({
-        message: response.message,
-      });
+
+      return res.status(200).json({ message: response.message });
     }
+
+    return res.status(400).json({ message: response.message });
+
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: error.message,
-    });
+    return res.status(500).json({ message: error.message });
   }
 };
 

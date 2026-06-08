@@ -28,13 +28,40 @@ export const addConsent = async (payload) => {
 
 export const editConsent = async (id, payload) => {
   try {
+      
+    const [[oldData]] = await database.query(`SELECT idProofImage,signature FROM tattoodetails WHERE id=?`,[id]);
+
+    const idProofImage = oldData?.idProofImage;
+    const signature = oldData?.signature
+
+        if (signature && payload.signature) {
+      try {
+        const pathname = new URL(signature).pathname;
+        await del(pathname);
+      } catch (err) {
+        console.log("Blob delete failed:", err.message);
+      }
+    }
+        if (idProofImage && payload.idProofImage) {
+      try {
+        const pathname = new URL(idProofImage).pathname;
+        await del(pathname);
+      } catch (err) {
+        console.log("Blob delete failed:", err.message);
+      }
+    }
+
+    const signatureFinal = payload.signature || signature
+    const idProofFinal = payload.idProofImage || idProofImage
+
+
     const query = `UPDATE consent SET clientId=?, idProofType=?, idProofNumber=?, idProofImage=?, signature=? WHERE id=?`;
     const values = [
       payload.clientId,
       payload.idProofType,
       payload.idProofNumber,
-      payload.idProofImage,
-      payload.signature,
+      idProofFinal,
+      signatureFinal,
       id,
     ];
 

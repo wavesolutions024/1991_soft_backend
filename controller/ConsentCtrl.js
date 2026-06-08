@@ -11,17 +11,27 @@ export const addConsentCtrl = async (req, res) => {
 
     const idProof = req.files?.idproof?.[0];
 
-    const idprooFile = idProof ? `${baseUrl}/${idProof.filename}` : null;
+    // const idprooFile = idProof ? `${baseUrl}/${idProof.filename}` : null;
 
     const signature = req.files?.signature?.[0];
-    const signatureFile = signature ? `${baseUrl}/${signature.filename}` : null;
+    // const signatureFile = signature ? `${baseUrl}/${signature.filename}` : null;
+
+       const idprooFileblob = await put(idProof.originalname, idProof.buffer, {
+      access: "public",
+      contentType: idProof.mimetype,
+    });
+       const signaturelob = await put(signature.originalname, signature.buffer, {
+      access: "public",
+      contentType: signature.mimetype,
+    });
+
 
     const consentData = new consent({
       clientId: payload.clientId,
       idProofType: payload.idProofType,
       idProofNumber: payload.idProofNumber,
-      idProofImage: idprooFile,
-      signature: signatureFile,
+      idProofImage: idprooFileblob.file,
+      signature: signaturelob.file,
     });
 
     const response = await addConsent(consentData);
