@@ -4,6 +4,8 @@ import {
   editClientService,
 } from "../services/clientService.js";
 import dotenv from "dotenv";
+import { put } from "@vercel/blob";
+
 dotenv.config();
 
 export const addClinets = async (req, res) => {
@@ -14,21 +16,22 @@ export const addClinets = async (req, res) => {
 
     const imageFile = req.files?.tattooImage?.[0];
 
-    const ttImage = imageFile ? `${baseUrl}/${imageFile.filename}` : null;
+    // const ttImage = imageFile ? `${baseUrl}/${imageFile.filename}` : null;
 
-    const response = await addClientsService(payload, ttImage, franchiesCode);
+    const blob = await put(imageFile.originalname, imageFile.buffer, {
+      access: "public",
+      contentType: imageFile.mimetype,
+    });
+
+    const response = await addClientsService(payload, blob.url, franchiesCode);
 
     const pdata = JSON.stringify(payload);
 
-
-
-   
-
     if (response.success) {
-           await database.query(
-      `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-      [payload.username, "Clients", "add", pdata],
-    );
+      await database.query(
+        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
+        [payload.username, "Clients", "add", pdata],
+      );
       return res.status(200).json({
         message: response.message,
       });
@@ -129,13 +132,13 @@ export const editClient = async (req, res) => {
 
     const response = await editClientService(payload, ttImage, clientId);
 
-    const pdata = JSON.stringify(payload)
+    const pdata = JSON.stringify(payload);
 
     if (response.success) {
-              await database.query(
-      `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-      [payload.username, "Clients", "edit", pdata],
-    );
+      await database.query(
+        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
+        [payload.username, "Clients", "edit", pdata],
+      );
       return res.status(200).json({
         message: response.message,
       });
@@ -176,6 +179,32 @@ export const deleteClient = async (req, res) => {
     } else {
       return res.status(200).json({
         message: "delete successfully",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getAllClientsDropdown = async (req, res) => {
+  try {
+    const franchiesId = req.user?.franchiesId;
+
+    const [response] = await database.query(
+      `SELECT id, name FROM clients WHERE franchiesCode = ? `,
+      [franchiesId],
+    );
+
+    if (response?.length > 0) {
+      return res.status(200).json({
+        message: "success",
+        data: response,
+      });
+    } else {
+      return res.status(400).json({
+        message: "data not found",
       });
     }
   } catch (error) {
