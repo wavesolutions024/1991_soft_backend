@@ -7,35 +7,43 @@ dotenv.config();
 
 export const addConsentCtrl = async (req, res) => {
   try {
+
+    
     const payload = JSON.parse(req.body.consent);
-    const baseUrl = process.env.BASE_URL;
+    const idProof = req?.files?.idproof?.[0] || null;
+    const signature = req?.files?.signature?.[0] || null;
 
-    const idProof = req.files?.idproof?.[0];
+    let idProofBlob;
+    if (idProof) {
+      idProofBlob = await put(idProof.originalname, idProof.buffer, {
+        access: "public",
+        contentType: idProof.mimetype,
+      });
+    }
 
-    // const idprooFile = idProof ? `${baseUrl}/${idProof.filename}` : null;
-
-    const signature = req.files?.signature?.[0];
-    // const signatureFile = signature ? `${baseUrl}/${signature.filename}` : null;
-
-       const idprooFileblob = await put(idProof?.originalname, idProof?.buffer, {
-      access: "public",
-      contentType: idProof?.mimetype,
-    });
-       const signaturelob = await put(signature?.originalname, signature?.buffer, {
-      access: "public",
-      contentType: signature?.mimetype,
-    });
-
+    let signatureBlob;
+    if (signature) {
+      signatureBlob = await put(signature.originalname, signature.buffer, {
+        access: "public",
+        contentType: signature.mimetype,
+      });
+    }
 
     const consentData = new consent({
       clientId: payload.clientId,
       idProofType: payload.idProofType,
       idProofNumber: payload.idProofNumber,
-      idProofImage: idprooFileblob.file,
-      signature: signaturelob.file,
+      idProofImage: idProofBlob?.file ?? null,
+      signature: signatureBlob?.file ?? null,
     });
 
+    console.log(idProofBlob?.file);
+    console.log(signatureBlob?.file);
+
+    console.log(consentData)
+
     const response = await addConsent(consentData);
+
     const pdata = JSON.stringify(payload);
     if (response.success) {
       await database.query(
@@ -51,6 +59,7 @@ export const addConsentCtrl = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       message: error.message,
     });
@@ -68,32 +77,47 @@ export const editConsentCtrl = async (req, res) => {
     }
 
     const payload = JSON.parse(req.body.consent || "{}");
-    const baseUrl = process.env.BASE_URL;
 
-    const [existingConsent] = await database.query(
+    const [existingConsentRows] = await database.query(
       "SELECT idProofImage, signature FROM consent WHERE id = ?",
       [id],
     );
 
-    const oldIdProofImage = existingConsent?.[0]?.idProofImage ?? null;
-    const oldSignature = existingConsent?.[0]?.signature ?? null;
+    const oldIdProofImage = existingConsentRows?.[0]?.idProofImage ?? null;
+    const oldSignature = existingConsentRows?.[0]?.signature ?? null;
 
-    const idProof = req.files?.idproof?.[0];
-    const idProofImage = idProof
-      ? `${baseUrl}/${idProof.filename}`
-      : payload.idProofImage || oldIdProofImage;
+    const idProof = req.files?.idproof?.[0] || null;
+    const signature = req.files?.signature?.[0] || null;
 
-    const signature = req.files?.signature?.[0];
-    const signatureFile = signature
-      ? `${baseUrl}/${signature.filename}`
-      : payload.signature || oldSignature;
+    // Upload new files to Vercel Blob when provided
+    let newIdProofUrl = null;
+    if (idProof) {
+      const uploaded = await put(idProof.originalname, idProof.buffer, {
+        access: "public",
+        contentType: idProof.mimetype,
+      });
+      newIdProofUrl = uploaded?.file ?? null;
+    }
+
+    let newSignatureUrl = null;
+    if (signature) {
+      const uploaded = await put(signature.originalname, signature.buffer, {
+        access: "public",
+        contentType: signature.mimetype,
+      });
+      newSignatureUrl = uploaded?.file ?? null;
+    }
+
+    const finalIdProof = newIdProofUrl || payload.idProofImage || oldIdProofImage;
+    const finalSignature = newSignatureUrl || payload.signature || oldSignature;
 
     const response = await editConsent(id, {
       ...payload,
-      idProofImage,
-      signature: signatureFile,
+      idProofImage: finalIdProof,
+      signature: finalSignature,
     });
     const pdata = JSON.stringify(payload);
+    
     if (response.success) {
       await database.query(
         `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
@@ -169,5 +193,3 @@ export const getConsentById = async (req, res) => {
     });
   }
 };
-
-

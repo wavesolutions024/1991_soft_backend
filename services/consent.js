@@ -29,28 +29,32 @@ export const addConsent = async (payload) => {
 
 export const editConsent = async (id, payload) => {
   try {
+    console.log(payload, "userData?.username")
       
-    const [[oldData]] = await database.query(`SELECT idProofImage,signature FROM tattoodetails WHERE id=?`,[id]);
+    const [[oldData]] = await database.query(`SELECT idProofImage,signature FROM consent WHERE id=?`,[id]);
 
     const idProofImage = oldData?.idProofImage;
     const signature = oldData?.signature
 
-        if (signature && payload.signature) {
-      try {
-        const pathname = new URL(signature).pathname;
-        await del(pathname);
-      } catch (err) {
-        console.log("Blob delete failed:", err.message);
-      }
-    }
-        if (idProofImage && payload.idProofImage) {
-      try {
-        const pathname = new URL(idProofImage).pathname;
-        await del(pathname);
-      } catch (err) {
-        console.log("Blob delete failed:", err.message);
-      }
-    }
+        // Delete old signature blob only if a new different signature URL is provided
+        if (signature && payload.signature && payload.signature !== signature) {
+          try {
+            const pathname = new URL(signature).pathname;
+            await del(pathname);
+          } catch (err) {
+            console.log("Blob delete failed:", err.message);
+          }
+        }
+
+        // Delete old id proof blob only if a new different idProofImage URL is provided
+        if (idProofImage && payload.idProofImage && payload.idProofImage !== idProofImage) {
+          try {
+            const pathname = new URL(idProofImage).pathname;
+            await del(pathname);
+          } catch (err) {
+            console.log("Blob delete failed:", err.message);
+          }
+        }
 
     const signatureFinal = payload.signature || signature
     const idProofFinal = payload.idProofImage || idProofImage
