@@ -35,13 +35,12 @@ export class artists {
 export class consent {
   constructor(consent) {
     this.clientId = consent.clientId;
-    ((this.idProofType = consent.idProofType),
-      (this.idProofNumber = consent.idProofNumber),
-      (this.idProofImage = consent.idProofImage),
-      (this.signature = consent.signature));
+    this.idProofType = consent.idProofType;
+    this.idProofNumber = consent.idProofNumber;
+    this.idProofImage = consent.idProofImage;
+    this.signature = consent.signature;
   }
 }
-
 export class enquiry {
   constructor(enquiry) {
     ((this.name = enquiry.name),

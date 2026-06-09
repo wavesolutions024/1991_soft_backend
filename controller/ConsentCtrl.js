@@ -7,8 +7,6 @@ dotenv.config();
 
 export const addConsentCtrl = async (req, res) => {
   try {
-
-    
     const payload = JSON.parse(req.body.consent);
     const idProof = req?.files?.idproof?.[0] || null;
     const signature = req?.files?.signature?.[0] || null;
@@ -33,36 +31,25 @@ export const addConsentCtrl = async (req, res) => {
       clientId: payload.clientId,
       idProofType: payload.idProofType,
       idProofNumber: payload.idProofNumber,
-      idProofImage: idProofBlob?.file ?? null,
-      signature: signatureBlob?.file ?? null,
+      idProofImage: idProofBlob?.url ?? null,
+      signature: signatureBlob?.url ?? null,
     });
-
-    console.log(idProofBlob?.file);
-    console.log(signatureBlob?.file);
-
-    console.log(consentData)
 
     const response = await addConsent(consentData);
 
-    const pdata = JSON.stringify(payload);
     if (response.success) {
+      const pdata = JSON.stringify(payload);
       await database.query(
-        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Consent", "add", pdata],
+        `INSERT INTO logs (user, service, action, tableNames) VALUES (?, ?, ?, ?)`,
+        [payload.username, "Consent", "add", pdata]
       );
-      return res.status(200).json({
-        message: response.message,
-      });
+      return res.status(200).json({ message: response.message });
     } else {
-      return res.status(500).json({
-        message: response.message,
-      });
+      return res.status(500).json({ message: response.message });
     }
   } catch (error) {
-    console.log(error)
-    return res.status(500).json({
-      message: error.message,
-    });
+    console.error(error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -71,16 +58,14 @@ export const editConsentCtrl = async (req, res) => {
     const { id } = req.query;
 
     if (!id) {
-      return res.status(400).json({
-        message: "id is required",
-      });
+      return res.status(400).json({ message: "id is required" });
     }
 
     const payload = JSON.parse(req.body.consent || "{}");
 
     const [existingConsentRows] = await database.query(
       "SELECT idProofImage, signature FROM consent WHERE id = ?",
-      [id],
+      [id]
     );
 
     const oldIdProofImage = existingConsentRows?.[0]?.idProofImage ?? null;
@@ -89,14 +74,13 @@ export const editConsentCtrl = async (req, res) => {
     const idProof = req.files?.idproof?.[0] || null;
     const signature = req.files?.signature?.[0] || null;
 
-    // Upload new files to Vercel Blob when provided
     let newIdProofUrl = null;
     if (idProof) {
       const uploaded = await put(idProof.originalname, idProof.buffer, {
         access: "public",
         contentType: idProof.mimetype,
       });
-      newIdProofUrl = uploaded?.file ?? null;
+      newIdProofUrl = uploaded?.url ?? null; // fix: was uploaded?.file
     }
 
     let newSignatureUrl = null;
@@ -105,7 +89,7 @@ export const editConsentCtrl = async (req, res) => {
         access: "public",
         contentType: signature.mimetype,
       });
-      newSignatureUrl = uploaded?.file ?? null;
+      newSignatureUrl = uploaded?.url ?? null; // fix: was uploaded?.file
     }
 
     const finalIdProof = newIdProofUrl || payload.idProofImage || oldIdProofImage;
@@ -116,25 +100,20 @@ export const editConsentCtrl = async (req, res) => {
       idProofImage: finalIdProof,
       signature: finalSignature,
     });
-    const pdata = JSON.stringify(payload);
-    
+
     if (response.success) {
+      const pdata = JSON.stringify(payload);
       await database.query(
-        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Consent", "edit", pdata],
+        `INSERT INTO logs (user, service, action, tableNames) VALUES (?, ?, ?, ?)`,
+        [payload.username, "Consent", "edit", pdata]
       );
-      return res.status(200).json({
-        message: response.message,
-      });
+      return res.status(200).json({ message: response.message });
     }
 
-    return res.status(400).json({
-      message: response.message,
-    });
+    return res.status(400).json({ message: response.message });
   } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
+    console.error(error);
+    return res.status(500).json({ message: error.message });
   }
 };
 

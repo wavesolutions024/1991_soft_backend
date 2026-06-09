@@ -29,7 +29,7 @@ export const addConsent = async (payload) => {
 
 export const editConsent = async (id, payload) => {
   try {
-    console.log(payload, "userData?.username")
+
       
     const [[oldData]] = await database.query(`SELECT idProofImage,signature FROM consent WHERE id=?`,[id]);
 
