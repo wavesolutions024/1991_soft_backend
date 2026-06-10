@@ -12,18 +12,22 @@ export const addClinets = async (req, res) => {
   try {
     const franchiesCode = req.user.franchiesId;
     const payload = JSON.parse(req.body.clients);
-    const baseUrl = process.env.BASE_URL;
+    // const baseUrl = process.env.BASE_URL;
 
-    const imageFile = req.files?.tattooImage?.[0];
+    const imageFile = req.files?.tattooImage?.[0] || null;
 
     // const ttImage = imageFile ? `${baseUrl}/${imageFile.filename}` : null;
 
-    const blob = await put(imageFile.originalname, imageFile.buffer, {
-      access: "public",
-      contentType: imageFile.mimetype,
-    });
+    let blob;
 
-    const response = await addClientsService(payload, blob.url, franchiesCode);
+    if (imageFile !== null) {
+      blob = await put(imageFile.originalname, imageFile.buffer, {
+        access: "public",
+        contentType: imageFile.mimetype,
+      });
+    }
+
+    const response = await addClientsService(payload, blob?.url || null, franchiesCode);
 
     const pdata = JSON.stringify(payload);
 
@@ -56,14 +60,25 @@ export const getAllClients = async (req, res) => {
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
     const offset = (page - 1) * size;
 
+    const search = (req.query.search || req.query.query || "").trim();
+    let whereClause = "";
+    const params = [];
+
+    if (search) {
+      whereClause = `WHERE (cl.name LIKE ? OR cl.mobileno LIKE ?)`;
+      const like = `%${search}%`;
+      params.push(like, like);
+    }
+
     const [response] = await database.query(
       `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails 
-      AS td ON cl.id = td.clientId  ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
-      [size, offset],
+      AS td ON cl.id = td.clientId ${whereClause} ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
+      [...params, size, offset],
     );
 
     const [[{ total }]] = await database.query(
-      `SELECT COUNT(*) AS total FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId`,
+      `SELECT COUNT(DISTINCT cl.id) AS total FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId ${whereClause}`,
+      params,
     );
 
     return res.status(200).json({
@@ -142,14 +157,13 @@ export const editClient = async (req, res) => {
     if (response.success) {
       await database.query(
         `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Clients", "edit", JSON.stringify(payload)]
+        [payload.username, "Clients", "edit", JSON.stringify(payload)],
       );
 
       return res.status(200).json({ message: response.message });
     }
 
     return res.status(400).json({ message: response.message });
-
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

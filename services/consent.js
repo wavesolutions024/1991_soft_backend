@@ -3,7 +3,7 @@ import { database } from "../db/database.js";
 
 export const addConsent = async (payload) => {
   try {
-    const query = `INSERT INTO consent (clientId,idProofType,idProofNumber,idProofImage,signature) VALUES (?,?,?,?,?)`;
+    const query = `INSERT INTO consent (clientId,idProofType,idProofNumber,idProofImage,signature,medicalDesc) VALUES (?,?,?,?,?,?)`;
     
     const values = [
       payload.clientId,
@@ -11,6 +11,7 @@ export const addConsent = async (payload) => {
       payload.idProofNumber,
       payload.idProofImage,
       payload.signature,
+      payload.medicalDesc
     ];
 
     await database.query(query, values);
@@ -60,13 +61,14 @@ export const editConsent = async (id, payload) => {
     const idProofFinal = payload.idProofImage || idProofImage
 
 
-    const query = `UPDATE consent SET clientId=?, idProofType=?, idProofNumber=?, idProofImage=?, signature=? WHERE id=?`;
+    const query = `UPDATE consent SET clientId=?, idProofType=?, idProofNumber=?, idProofImage=?, signature=?, medicalDesc=? WHERE id=?`;
     const values = [
       payload.clientId,
       payload.idProofType,
       payload.idProofNumber,
       idProofFinal,
       signatureFinal,
+      payload.medicalDesc,
       id,
     ];
 

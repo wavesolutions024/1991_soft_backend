@@ -39,6 +39,7 @@ export class consent {
     this.idProofNumber = consent.idProofNumber;
     this.idProofImage = consent.idProofImage;
     this.signature = consent.signature;
+    this.medicalDesc = consent.medicalDesc
   }
 }
 export class enquiry {

@@ -49,11 +49,11 @@ export const loginFranchies = async (username, password) => {
         [username],
       );
 
-      franchiesId = existUser[0].franchiesCode;
-      id =  existUser[0].artistCode
+      franchiesId = existUser[0]?.franchiesCode;
+      id =  existUser[0]?.artistCode
     } else {
-      franchiesId = existUser[0].id;
-      id = existUser[0].id
+      franchiesId = existUser[0]?.id;
+      id = existUser[0]?.id
     }
 
     const user = existUser[0];

@@ -58,6 +58,7 @@ idProofType ENUM ('Aadhar Card', 'Pan Card', 'Passport') NOT NULL,
 idProofNumber VARCHAR(255) NOT NULL,
 idProofImage VARCHAR(255),
 signature VARCHAR(255),
+medicalDesc JSON,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (clientId) REFERENCES clients(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;

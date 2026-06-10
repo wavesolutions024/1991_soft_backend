@@ -33,6 +33,7 @@ export const addConsentCtrl = async (req, res) => {
       idProofNumber: payload.idProofNumber,
       idProofImage: idProofBlob?.url ?? null,
       signature: signatureBlob?.url ?? null,
+      medicalDesc:payload.medicalDesc
     });
 
     const response = await addConsent(consentData);
