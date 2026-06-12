@@ -14,7 +14,7 @@ const clients = `CREATE TABLE IF NOT EXISTS clients(
 id INT AUTO_INCREMENT PRIMARY KEY,
 franchiesCode INT NOT NULL,
 name VARCHAR(255) NOT NULL,
-email VARCHAR(255) UNIQUE,
+email VARCHAR(255),
 gender ENUM('Male','Female','Other') NOT NULL,
 mobileno VARCHAR(10) NOT NULL,
 tattooArtist VARCHAR(255) DEFAULT ('Admin') ,
