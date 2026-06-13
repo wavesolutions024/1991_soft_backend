@@ -16,6 +16,7 @@ export const addEnquiry = async (req, res) => {
       tattooDescription,
       budget,
     } = req.body;
+    const { username } = req.query;
 
     const franchiesCode = req.user.franchiesId;
 
@@ -43,7 +44,7 @@ export const addEnquiry = async (req, res) => {
       const payloadString = JSON.stringify(payload);
       await database.query(
         `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [req.user.username || "Unknown", "Enquiry", "add", payloadString],
+        [username, "Enquiry", "add", payloadString],
       );
 
       return res.status(200).json({ message: response.message });
@@ -107,6 +108,69 @@ export const updateEnquiryStatus = async (req, res) => {
   }
 };
 
+// edit enquiry
+
+export const updateEnquiry = async (req, res) => {
+  try {
+    const { id, username } = req.query;
+    const {
+      name,
+      email,
+      mobileNo,
+      gender,
+      tattooStyle,
+      tattooDescription,
+      budget,
+    } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        message: "Name is required",
+      });
+    }
+
+    if (!mobileNo) {
+      return res.status(400).json({
+        message: "Mobile Number is required",
+      });
+    }
+
+     await database.query(
+      `UPDATE enquiry SET name= ? , email = ?, mobileNo = ?, gender = ?, tattooStyle=?,tattooDescription=?,budget=? WHERE id = ?`,
+      [
+        name,
+        email,
+        mobileNo,
+        gender,
+        tattooStyle,
+        tattooDescription,
+        budget,
+        id,
+      ],
+    );
+
+    const payload = {
+      name,
+      email,
+      mobileNo,
+      gender,
+      tattooStyle,
+      tattooDescription,
+      budget,
+    };
+
+    const payloadString = JSON.stringify(payload);
+
+    await database.query(
+      `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
+      [username, "Enquiry", "edit", payloadString],
+    );
+    return res.status(200).json({
+      message: "update successfully",
+    });
+  } catch (error) {}
+};
+
 export const getAllEnquiry = async (req, res) => {
   try {
     const franchiesCode = req.user.franchiesId;
@@ -132,6 +196,32 @@ export const getAllEnquiry = async (req, res) => {
         total,
         totalPages: Math.ceil(total / size),
       },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getEnquiryById = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({
+        message: "id is required",
+      });
+    }
+
+    const [[response]] = await database.query(
+      `SELECT * FROM enquiry WHERE id = ?`,
+      [id],
+    );
+
+    return res.status(200).json({
+      message: "success",
+      data: response,
     });
   } catch (error) {
     return res.status(500).json({

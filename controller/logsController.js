@@ -14,8 +14,8 @@ export const getAllLogs = async (req, res) => {
       [size, offset],
     );
 
-    const [[{ total }]] = await database.query(
-      "SELECT COUNT(*) AS total FROM consent",
+    const [[ {total} ]] = await database.query(
+      "SELECT COUNT(*) AS total FROM logs",
     );
 
     return res.status(200).json({
