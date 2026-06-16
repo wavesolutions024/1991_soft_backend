@@ -14,6 +14,7 @@ export const addEnquiry = async (req, res) => {
       gender,
       tattooStyle,
       tattooDescription,
+      enquiryType,
       budget,
     } = req.body;
     const { username } = req.query;
@@ -35,6 +36,7 @@ export const addEnquiry = async (req, res) => {
       gender,
       tattooStyle,
       tattooDescription,
+      enquiryType,
       budget,
     });
 
@@ -120,6 +122,7 @@ export const updateEnquiry = async (req, res) => {
       gender,
       tattooStyle,
       tattooDescription,
+      enquiryType,
       budget,
     } = req.body;
 
@@ -136,7 +139,7 @@ export const updateEnquiry = async (req, res) => {
     }
 
      await database.query(
-      `UPDATE enquiry SET name= ? , email = ?, mobileNo = ?, gender = ?, tattooStyle=?,tattooDescription=?,budget=? WHERE id = ?`,
+      `UPDATE enquiry SET name= ? , email = ?, mobileNo = ?, gender = ?, tattooStyle=?,tattooDescription=?,enquiryType=?,budget=? WHERE id = ?`,
       [
         name,
         email,
@@ -144,6 +147,7 @@ export const updateEnquiry = async (req, res) => {
         gender,
         tattooStyle,
         tattooDescription,
+        enquiryType,
         budget,
         id,
       ],
@@ -156,6 +160,7 @@ export const updateEnquiry = async (req, res) => {
       gender,
       tattooStyle,
       tattooDescription,
+      enquiryType,
       budget,
     };
 

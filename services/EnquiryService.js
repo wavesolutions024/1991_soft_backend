@@ -3,8 +3,8 @@ import { database } from "../db/database.js";
 export const addEnquiryService = async (payload, franchiesCode) => {
   try {
     const query = `INSERT INTO enquiry (franchiesCode,name,email,mobileNo,gender,
-        tattooStyle,tattooDescription,budget) 
-        VALUES (?,?,?,?,?,?,?,?)`;
+        tattooStyle,tattooDescription,enquiryType,budget) 
+        VALUES (?,?,?,?,?,?,?,?,?)`;
 
     const values = [
       franchiesCode,
@@ -14,6 +14,7 @@ export const addEnquiryService = async (payload, franchiesCode) => {
       payload.gender,
       payload.tattooStyle,
       payload.tattooDescription,
+      payload.enquiryType,
       payload.budget,
     ];
 

@@ -50,6 +50,7 @@ export class enquiry {
       (this.gender = enquiry.gender),
       (this.tattooStyle = enquiry.tattooStyle),
       (this.tattooDescription = enquiry.tattooDescription),
+      (this.enquiryType = enquiry.enquiryType),
       (this.budget = enquiry.budget));
   }
 }

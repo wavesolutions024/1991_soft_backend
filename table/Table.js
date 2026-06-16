@@ -81,6 +81,7 @@ mobileNo VARCHAR(20) NOT NULL,
 gender VARCHAR(20),
 tattooStyle VARCHAR(100),
 tattooDescription TEXT,
+enquiryType VARCHAR(20),
 budget DECIMAL(10,2),
 status ENUM('pending','contacted','booked','completed','cancelled') DEFAULT 'pending',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -88,10 +89,21 @@ updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
 
-// const appoinments = `CREATE TABLE IF NOT EXISTS appoinments (
-// id INT AUTO_INCREMENT PRIMARY KEY,
+const appointments = `CREATE TABLE IF NOT EXISTS appointments (
+id INT AUTO_INCREMENT PRIMARY KEY,
+franchiesCode INT NOT NULL,
+name VARCHAR(255) NOT NULL,
+date DATE NOT NULL,
+time TIME NOT NULL,
+contactNumber VARCHAR(20) NOT NULL,
+advanceAmount DECIMAL(10,2) DEFAULT 0,
+visitPlatform VARCHAR(100),
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
+)`;
 
-// ) `
+
 
 const createTable = async (table, query) => {
   try {
@@ -111,4 +123,5 @@ export const createALLtabels = async () => {
   await createTable("consentForm", consentForm);
   await createTable("logs", logs);
   await createTable("enquiry", enquiry);
+  await createTable("appointments", appointments);
 };

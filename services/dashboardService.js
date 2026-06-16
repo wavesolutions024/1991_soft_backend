@@ -31,11 +31,9 @@ export const getDashboardStats = async (franchiesId) => {
     // Today's Appointments (assuming appointments are tracked via clientType or a separate table)
     // If there's no appointments table, we'll count clients created today or use tattooDetails as proxy
     const [todayAppointmentsResult] = await database.query(
-      `SELECT COUNT(DISTINCT td.clientId) as todayAppointments 
-       FROM tattoodetails td
-       JOIN clients c ON td.clientId = c.id
-       WHERE c.franchiesCode = ? 
-       AND DATE(td.created_at) = CURDATE()`,
+      `SELECT COUNT(*) as todayAppointments 
+       FROM appointments WHERE franchiesCode = ? 
+       AND DATE(created_at) = CURDATE()`,
       [franchiesId],
     );
     const todayAppointments =
@@ -43,11 +41,10 @@ export const getDashboardStats = async (franchiesId) => {
 
     // Today's appointments last month
     const [lastMonthAppointmentsResult] = await database.query(
-      `SELECT COUNT(DISTINCT td.clientId) as lastMonthAppointments 
-       FROM tattoodetails td
-       JOIN clients c ON td.clientId = c.id
-       WHERE c.franchiesCode = ? 
-       AND DATE(td.created_at) = DATE_SUB(CURDATE(), INTERVAL 30 DAY)`,
+      `SELECT COUNT(*) as lastMonthAppointments 
+       FROM appointments 
+       WHERE franchiesCode = ? 
+       AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 30 DAY)`,
       [franchiesId],
     );
     const lastMonthAppointments =

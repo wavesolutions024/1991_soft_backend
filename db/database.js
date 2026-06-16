@@ -4,9 +4,10 @@ dotenv.config();
 
 export const database = mysql.createPool({
   host: process.env.HOST || "localhost",
-  user: process.env.USER ||  "root",
-  password:process.env.PASSWORD ||  "ketan566123",
-  database: process.env.DATABASE ||  "1991_backend",
+  user: process.env.USER || "root",
+  password: process.env.PASSWORD || "ketan566123",
+  database: process.env.DATABASE || "1991_backend",
+  dateStrings: true,
 });
 
 export const createConnection = async () => {
