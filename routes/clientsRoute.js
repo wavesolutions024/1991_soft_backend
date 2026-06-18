@@ -7,6 +7,7 @@ import {
   getAllClients,
   getAllClientsDropdown,
   getClientById,
+  exportAllClients,
 } from "../controller/clientsController.js";
 import { upload } from "../utils/multer.js";
 
@@ -30,3 +31,4 @@ clientRoute.put(
 
 clientRoute.delete("/deleteClient",token,verifyRole, deleteClient);
 clientRoute.get("/getAllClientsDropdown",token, getAllClientsDropdown)
+clientRoute.get("/exportallclients", token, exportAllClients)

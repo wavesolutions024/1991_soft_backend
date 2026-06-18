@@ -12,6 +12,7 @@ import { consentRoute } from "./routes/consentRoute.js";
 import { dashboardRoute } from "./routes/dashboardRoute.js";
 import { enquiryRoute } from "./routes/enquiryRoute.js";
 import { appointmentsRoute } from "./routes/appointmentsRoute.js";
+import { notifyRoute } from "./routes/notificationRoute.js";
 dotenv.config();
 
 
@@ -52,6 +53,7 @@ app.use("/api/consent", consentRoute);
 app.use("/api/dashboard", dashboardRoute);
 app.use("/api/enquiry", enquiryRoute);
 app.use("/api/appointments", appointmentsRoute);
+app.use("/api/notification", notifyRoute);
 
 app.use("/", (req, res) => {
   res.send("Hello 1991 tattoo studio");

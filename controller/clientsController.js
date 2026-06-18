@@ -227,3 +227,44 @@ export const getAllClientsDropdown = async (req, res) => {
     });
   }
 };
+
+// export all clients as CSV
+export const exportAllClients = async (req, res) => {
+  try {
+    const franchiesId = req.user?.franchiesId;
+
+    const [rows] = await database.query(
+      `SELECT cl.*, td.tattoodetails, td.inch, td.price, td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId WHERE cl.franchiesCode = ? ORDER BY cl.id DESC`,
+      [franchiesId],
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(400).json({ message: "data not found" });
+    }
+
+    // build CSV header from keys of first row
+    const headers = Object.keys(rows[0]);
+
+    const escape = (val) => {
+      if (val === null || val === undefined) return "";
+      const s = String(val);
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
+
+    const csvLines = [];
+    csvLines.push(headers.join(","));
+
+    for (const row of rows) {
+      const line = headers.map((h) => escape(row[h])).join(",");
+      csvLines.push(line);
+    }
+
+    const csv = csvLines.join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=clients_export.csv");
+    return res.status(200).send(csv);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
