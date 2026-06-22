@@ -2,7 +2,7 @@ import { database } from "../db/database.js";
 import {  del } from "@vercel/blob";
 export const addClientsService = async (payload, image, franchiesCode) => {
   try {
-    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,clientType,referallName,address,dob) VALUES (?,?,?,?,?, ?,?,?,?,?)`;
+    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob) VALUES (?,?,?,?,?, ?,?,?,?,?,?)`;
     const values = [
       franchiesCode,
       payload.name,
@@ -10,6 +10,7 @@ export const addClientsService = async (payload, image, franchiesCode) => {
       payload.email,
       payload.mobileno,
       payload.tattooArtist,
+      payload.paymentType,
       payload.clientType,
       payload.referallName,
       payload.address,
@@ -45,7 +46,7 @@ export const addClientsService = async (payload, image, franchiesCode) => {
 export const editClientService = async (payload, newImageUrl, id) => {
   try {
     await database.query(
-      `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=? WHERE id=?`,
+      `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=? WHERE id=?`,
       [
         payload.name,
         payload.gender,
@@ -56,6 +57,7 @@ export const editClientService = async (payload, newImageUrl, id) => {
         payload.clientType,
         payload.referallName,
         payload.dob,
+        payload.paymentType,
         id,
       ]
     );

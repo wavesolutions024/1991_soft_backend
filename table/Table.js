@@ -22,6 +22,7 @@ clientType VARCHAR(255),
 referallName VARCHAR(255),
 address VARCHAR(255) ,
 dob VARCHAR(20) ,
+paymentType ENUM('Cash','Card','UPI') ,
 status ENUM('Active','Deactive') DEFAULT 'Active',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
