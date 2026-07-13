@@ -49,19 +49,16 @@ export const addArtist = async (req, res) => {
       [`${prefix}%`, id],
     );
 
-    let nextNumber = 1;
-    if (latestRows.length > 0) {
-      const latestCode = latestRows[0].artistCode || "";
-      const match = latestCode.match(/(\d+)$/);
-      if (match) {
-        const lastNum = parseInt(match[0], 10);
-        if (!isNaN(lastNum)) nextNumber = lastNum + 1;
-      }
-    }
+let nextNumber = 1;
+if (latestRows.length > 0) {
+  const latestCode = latestRows[0].artistCode || "";
+  const suffixPart = latestCode.slice(prefix.length); // everything after "emp1991"
+  const lastNum = parseInt(suffixPart, 10);
+  if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+}
 
-    // pad to at least 2 digits (01, 02, ...)
-    const suffix = String(nextNumber).padStart(2, "0");
-    const artistCode = `${prefix}${suffix}`;
+const suffix = String(nextNumber).padStart(2, "0");
+const artistCode = `${prefix}${suffix}`;
 
     const model = new artists({ artistName, artistNumber, username, password, artistCode });
 

@@ -2,7 +2,16 @@ import { database } from "../db/database.js";
 import {  del } from "@vercel/blob";
 export const addClientsService = async (payload, image, franchiesCode) => {
   try {
-    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob) VALUES (?,?,?,?,?, ?,?,?,?,?,?)`;
+
+     let backDate;
+     if(payload.backDateEntry === ""){
+      backDate = new Date()
+     }else{
+       backDate = payload.backDateEntry
+     }
+
+    
+    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry) VALUES (?,?,?,?,?,?, ?,?,?,?,?,?)`;
     const values = [
       franchiesCode,
       payload.name,
@@ -15,6 +24,7 @@ export const addClientsService = async (payload, image, franchiesCode) => {
       payload.referallName,
       payload.address,
       payload.dob,
+      backDate
     ];
 
     const [clients] = await database.query(query, values);
@@ -45,8 +55,17 @@ export const addClientsService = async (payload, image, franchiesCode) => {
 
 export const editClientService = async (payload, newImageUrl, id) => {
   try {
+const [existData] = await database.query(`SELECT backDateEntry FROM clients WHERE id = ?`,id)
+        let backDate;
+     if(payload.backDateEntry === ""){
+      backDate = existData[0].backDateEntry
+     }else{
+       backDate = payload.backDateEntry
+     }
+
+
     await database.query(
-      `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=? WHERE id=?`,
+      `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=?,backDateEntry=? WHERE id=?`,
       [
         payload.name,
         payload.gender,
@@ -58,6 +77,7 @@ export const editClientService = async (payload, newImageUrl, id) => {
         payload.referallName,
         payload.dob,
         payload.paymentType,
+        backDate,
         id,
       ]
     );

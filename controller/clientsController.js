@@ -31,10 +31,12 @@ export const addClinets = async (req, res) => {
 
     const pdata = JSON.stringify(payload);
 
+
+
     if (response.success) {
       await database.query(
         `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Clients", "add", pdata],
+        [payload?.username, "Clients", "add", pdata],
       );
       return res.status(200).json({
         message: response.message,
@@ -154,10 +156,12 @@ export const editClient = async (req, res) => {
 
     const response = await editClientService(payload, blobUrl, clientId);
 
+     const pdata = JSON.stringify(payload);
+
     if (response.success) {
       await database.query(
         `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Clients", "edit", JSON.stringify(payload)],
+        [payload.username, "Clients", "edit", pdata],
       );
 
       return res.status(200).json({ message: response.message });
@@ -194,6 +198,8 @@ export const deleteClient = async (req, res) => {
       return res.status(200).json({
         message: "delete successfully",
       });
+
+
     }
   } catch (error) {
     return res.status(500).json({

@@ -24,6 +24,7 @@ address VARCHAR(255) ,
 dob VARCHAR(20) ,
 paymentType ENUM('Cash','Card','UPI') ,
 status ENUM('Active','Deactive') DEFAULT 'Active',
+backDateEntry TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
