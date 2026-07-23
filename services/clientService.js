@@ -1,6 +1,6 @@
 import { database } from "../db/database.js";
 import {  del } from "@vercel/blob";
-export const addClientsService = async (payload, image, franchiesCode) => {
+export const addClientsService = async (payload, image, franchiesCode,id) => {
   try {
 
      let backDate;
@@ -11,9 +11,10 @@ export const addClientsService = async (payload, image, franchiesCode) => {
      }
 
     
-    const query = `INSERT INTO clients (franchiesCode,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry) VALUES (?,?,?,?,?,?, ?,?,?,?,?,?)`;
+    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry) VALUES (?,?,?,?,?,?, ?,?,?,?,?,?)`;
     const values = [
       franchiesCode,
+      id,
       payload.name,
       payload.gender,
       payload.email,

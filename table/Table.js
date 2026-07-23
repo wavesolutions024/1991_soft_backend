@@ -13,6 +13,7 @@ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 const clients = `CREATE TABLE IF NOT EXISTS clients(
 id INT AUTO_INCREMENT PRIMARY KEY,
 franchiesCode INT NOT NULL,
+a_id INT NOT NULL,
 name VARCHAR(255) NOT NULL,
 email VARCHAR(255),
 gender ENUM('Male','Female','Other') NOT NULL,

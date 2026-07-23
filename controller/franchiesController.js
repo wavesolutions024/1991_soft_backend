@@ -73,6 +73,7 @@ export const loginFranchiesCtrl = async (req, res) => {
         {
           id: response?.id,
           franchiesId: response?.franchiesId,
+          
           role: response?.user?.role,
         },
         process.env.JWT_SECRET,

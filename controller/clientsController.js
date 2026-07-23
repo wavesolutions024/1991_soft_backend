@@ -12,6 +12,7 @@ export const addClinets = async (req, res) => {
   try {
     const franchiesCode = req.user.franchiesId;
     const payload = JSON.parse(req.body.clients);
+    const id = req.user.id
     // const baseUrl = process.env.BASE_URL;
 
     const imageFile = req.files?.tattooImage?.[0] || null;
@@ -58,6 +59,7 @@ export const addClinets = async (req, res) => {
 
 export const getAllClients = async (req, res) => {
   try {
+    const id = req.user.id
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
     const offset = (page - 1) * size;
