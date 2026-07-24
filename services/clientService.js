@@ -10,8 +10,16 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
        backDate = payload.backDateEntry
      }
 
+    let tattooArtist;
+
+    if(payload.tattooArtist === ""){
+      tattooArtist = "Admin"
+    }else{
+      tattooArtist = payload.tattooArtist
+    }
+
     
-    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry) VALUES (?,?,?,?,?,?, ?,?,?,?,?,?)`;
+    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry) VALUES (?,?,?,?,?,?,?, ?,?,?,?,?,?)`;
     const values = [
       franchiesCode,
       id,
@@ -19,7 +27,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
       payload.gender,
       payload.email,
       payload.mobileno,
-      payload.tattooArtist,
+      tattooArtist,
       payload.paymentType,
       payload.clientType,
       payload.referallName,
@@ -66,7 +74,7 @@ const [existData] = await database.query(`SELECT backDateEntry FROM clients WHER
 
 
     await database.query(
-      `UPDATE clients SET name=?,gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=?,backDateEntry=? WHERE id=?`,
+      `UPDATE clients SET name=?, gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=?,backDateEntry=? WHERE id=?`,
       [
         payload.name,
         payload.gender,

@@ -67,7 +67,7 @@ export const loginFranchiesCtrl = async (req, res) => {
     }
 
     const response = await loginFranchies(username, password);
-
+    
     if (response.success) {
       const token = jwt.sign(
         {

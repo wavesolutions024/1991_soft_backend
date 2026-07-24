@@ -12,7 +12,11 @@ export const addClinets = async (req, res) => {
   try {
     const franchiesCode = req.user.franchiesId;
     const payload = JSON.parse(req.body.clients);
-    const id = req.user.id
+    const id = req.user.id;
+    const role = req.user.role;
+
+    const userId = role === "Admin" ? 0 : id
+
     // const baseUrl = process.env.BASE_URL;
 
     const imageFile = req.files?.tattooImage?.[0] || null;
@@ -28,7 +32,7 @@ export const addClinets = async (req, res) => {
       });
     }
 
-    const response = await addClientsService(payload, blob?.url || null, franchiesCode);
+    const response = await addClientsService(payload, blob?.url || null, franchiesCode,userId);
 
     const pdata = JSON.stringify(payload);
 
@@ -43,6 +47,7 @@ export const addClinets = async (req, res) => {
         message: response.message,
       });
     } else {
+      console.log(response.message)
       return res.status(500).json({
         message: response.message,
       });
@@ -59,30 +64,68 @@ export const addClinets = async (req, res) => {
 
 export const getAllClients = async (req, res) => {
   try {
-    const id = req.user.id
+    const id = req.user.id;
+    const role = req.user.role;
+
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
     const offset = (page - 1) * size;
 
     const search = (req.query.search || req.query.query || "").trim();
+
     let whereClause = "";
     const params = [];
 
-    if (search) {
-      whereClause = `WHERE (cl.name LIKE ? OR cl.mobileno LIKE ?)`;
-      const like = `%${search}%`;
-      params.push(like, like);
+    if (role === "Admin") {
+      // Admin: Get all records
+      if (search) {
+        whereClause = `
+          WHERE (cl.name LIKE ? OR cl.mobileno LIKE ?)
+        `;
+        const like = `%${search}%`;
+        params.push(like, like);
+      }
+    } else {
+      // Employee: Only assigned clients
+      whereClause = `WHERE cl.a_id = ?`;
+      params.push(id);
+
+      if (search) {
+        whereClause += `
+          AND (cl.name LIKE ? OR cl.mobileno LIKE ?)
+        `;
+        const like = `%${search}%`;
+        params.push(like, like);
+      }
     }
 
     const [response] = await database.query(
-      `SELECT cl.*,td.tattoodetails,td.inch,td.price,td.tattooImage FROM clients AS cl LEFT JOIN tattoodetails 
-      AS td ON cl.id = td.clientId ${whereClause} ORDER BY cl.id DESC LIMIT ? OFFSET ?`,
-      [...params, size, offset],
+      `
+      SELECT
+        cl.*,
+        td.tattoodetails,
+        td.inch,
+        td.price,
+        td.tattooImage
+      FROM clients AS cl
+      LEFT JOIN tattoodetails AS td
+        ON cl.id = td.clientId
+      ${whereClause}
+      ORDER BY cl.id DESC
+      LIMIT ? OFFSET ?
+      `,
+      [...params, size, offset]
     );
 
     const [[{ total }]] = await database.query(
-      `SELECT COUNT(DISTINCT cl.id) AS total FROM clients AS cl LEFT JOIN tattoodetails AS td ON cl.id = td.clientId ${whereClause}`,
-      params,
+      `
+      SELECT COUNT(DISTINCT cl.id) AS total
+      FROM clients AS cl
+      LEFT JOIN tattoodetails AS td
+        ON cl.id = td.clientId
+      ${whereClause}
+      `,
+      params
     );
 
     return res.status(200).json({
@@ -142,7 +185,7 @@ export const editClient = async (req, res) => {
   try {
     const { clientId } = req.query;
     const payload = JSON.parse(req.body.clients);
-
+   const id = req.user.id
     const imageFile = req.files?.tattooImage?.[0];
 
     let blobUrl = null;
