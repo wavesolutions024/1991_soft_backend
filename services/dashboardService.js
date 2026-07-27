@@ -117,6 +117,17 @@ export const getDashboardStats = async (franchiesId) => {
           )
         : 0;
 
+        // This Week Clients
+const [thisWeekClientsResult] = await database.query(
+  `SELECT COUNT(*) as thisWeekClients
+   FROM clients
+   WHERE franchiesCode = ?
+   AND YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)`,
+  [franchiesId],
+);
+
+const thisWeekClients = thisWeekClientsResult[0]?.thisWeekClients || 0;
+
     return {
       success: true,
       data: {
@@ -126,6 +137,10 @@ export const getDashboardStats = async (franchiesId) => {
           growthValue: clientGrowth,
           label: "last month",
         },
+         thisWeekClients: {
+      count: thisWeekClients,
+      label: "this week",
+    },
         todayAppointments: {
           count: todayAppointments,
           growth: `${appointmentGrowth >= 0 ? "+" : ""}${appointmentGrowth}%`,
