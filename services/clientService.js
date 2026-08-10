@@ -19,7 +19,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
     }
 
     
-    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry) VALUES (?,?,?,?,?,?,?, ?,?,?,?,?,?)`;
+    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry,semiVIP,VIP) VALUES (?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?)`;
     const values = [
       franchiesCode,
       id,
@@ -33,7 +33,9 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
       payload.referallName,
       payload.address,
       payload.dob,
-      backDate
+      backDate,
+      payload.price >= 8000 && payload.price < 20000 ? true : false,
+      payload.price >= 20000 ? true : false
     ];
 
     const [clients] = await database.query(query, values);
