@@ -48,6 +48,7 @@ export class enquiry {
       (this.email = enquiry.email),
       (this.mobileNo = enquiry.mobileNo),
       (this.gender = enquiry.gender),
+      (this.service = enquiry.service),
       (this.tattooStyle = enquiry.tattooStyle),
       (this.tattooDescription = enquiry.tattooDescription),
       (this.enquiryType = enquiry.enquiryType),

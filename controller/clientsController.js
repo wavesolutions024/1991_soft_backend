@@ -66,6 +66,10 @@ export const getAllClients = async (req, res) => {
   try {
     const id = req.user.id;
     const role = req.user.role;
+    const franchiesCode = req.user.franchiesId;
+
+    const vip = req.query.vip;
+    const semiVip = req.query.semiVip;
 
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
@@ -73,32 +77,41 @@ export const getAllClients = async (req, res) => {
 
     const search = (req.query.search || req.query.query || "").trim();
 
-    let whereClause = "";
+    const conditions = [];
     const params = [];
 
-    if (role === "Admin") {
-      // Admin: Get all records
-      if (search) {
-        whereClause = `
-          WHERE (cl.name LIKE ? OR cl.mobileno LIKE ?)
-        `;
-        const like = `%${search}%`;
-        params.push(like, like);
-      }
-    } else {
-      // Employee: Only assigned clients
-      whereClause = `WHERE cl.a_id = ?`;
-      params.push(id);
+    // Scope every request to the caller's franchise
+    conditions.push("cl.franchiesCode = ?");
+    params.push(franchiesCode);
 
-      if (search) {
-        whereClause += `
-          AND (cl.name LIKE ? OR cl.mobileno LIKE ?)
-        `;
-        const like = `%${search}%`;
-        params.push(like, like);
-      }
+    // Employees only see clients assigned to them
+    if (role !== "Admin") {
+      conditions.push("cl.a_id = ?");
+      params.push(id);
     }
 
+    if (search) {
+      conditions.push("(cl.name LIKE ? OR cl.mobileno LIKE ?)");
+      const like = `%${search}%`;
+      params.push(like, like);
+    }
+
+    if (vip !== undefined) {
+      conditions.push("cl.VIP = ?");
+      params.push(vip === "true" || vip === "1" ? 1 : 0);
+    }
+
+    if (semiVip !== undefined) {
+      conditions.push("cl.semiVIP = ?");
+      params.push(semiVip === "true" || semiVip === "1" ? 1 : 0);
+    }
+
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(" AND ")}`
+      : "";
+
+    // Paginate clients first (subquery), THEN join tattoo details,
+    // so a client with multiple tattoo rows doesn't skew page size
     const [response] = await database.query(
       `
       SELECT
@@ -107,22 +120,24 @@ export const getAllClients = async (req, res) => {
         td.inch,
         td.price,
         td.tattooImage
-      FROM clients AS cl
+      FROM (
+        SELECT cl.*
+        FROM clients AS cl
+        ${whereClause}
+        ORDER BY cl.id DESC
+        LIMIT ? OFFSET ?
+      ) AS cl
       LEFT JOIN tattoodetails AS td
         ON cl.id = td.clientId
-      ${whereClause}
       ORDER BY cl.id DESC
-      LIMIT ? OFFSET ?
       `,
       [...params, size, offset]
     );
 
     const [[{ total }]] = await database.query(
       `
-      SELECT COUNT(DISTINCT cl.id) AS total
+      SELECT COUNT(*) AS total
       FROM clients AS cl
-      LEFT JOIN tattoodetails AS td
-        ON cl.id = td.clientId
       ${whereClause}
       `,
       params
