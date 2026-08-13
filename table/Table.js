@@ -90,7 +90,6 @@ tattooDescription TEXT,
 enquiryType ENUM('website','landing page', 'Walk in') DEFAULT 'Walk in',
 budget DECIMAL(10,2),
 status ENUM('pending','contacted','booked','completed','cancelled') DEFAULT 'pending',
-
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE

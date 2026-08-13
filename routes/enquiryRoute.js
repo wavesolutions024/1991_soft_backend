@@ -2,6 +2,7 @@ import express from "express";
 import { token } from "../utils/Token.js";
 import {
   addEnquiry,
+  addOutEnquiry,
   getAllEnquiry,
   getEnquiryById,
   updateEnquiry,
@@ -15,3 +16,4 @@ enquiryRoute.put("/updateStatus", token, updateEnquiryStatus);
 enquiryRoute.get("/getAllEnquiry", token, getAllEnquiry);
 enquiryRoute.get("/getEnquiryById", token, getEnquiryById);
 enquiryRoute.put("/updateEnquiry", token, updateEnquiry);
+enquiryRoute.post("/addOutEnquiry", addOutEnquiry);

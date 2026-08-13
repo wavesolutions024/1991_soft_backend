@@ -61,6 +61,58 @@ export const addEnquiry = async (req, res) => {
   }
 };
 
+export const addOutEnquiry = async (req,res)=>{
+  try {
+    const {
+      name,
+      email,
+      mobileNo,
+      gender,
+      service,
+      tattooStyle,
+      tattooDescription,
+      enquiryType,
+      budget,
+    } = req.body;
+    
+
+    const franchiesCode = req.user.query;
+
+    if (!name) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+
+    if (!mobileNo) {
+      return res.status(400).json({ message: "Mobile number is required" });
+    }
+
+    const payload = new enquiry({
+      name,
+      email,
+      mobileNo,
+      gender,
+      service,
+      tattooStyle,
+      tattooDescription,
+      enquiryType,
+      budget,
+    });
+
+    const response = await addEnquiryService(payload, franchiesCode);
+
+    if (response.success) {
+      const payloadString = JSON.stringify(payload);
+
+      return res.status(200).json({ message: response.message });
+    }
+
+    return res.status(500).json({ message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 export const updateEnquiryStatus = async (req, res) => {
   try {
     const { id } = req.query;
