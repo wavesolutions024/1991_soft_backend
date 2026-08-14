@@ -61,7 +61,7 @@ export const addEnquiry = async (req, res) => {
   }
 };
 
-export const addOutEnquiry = async (req,res)=>{
+export const addOutEnquiry = async (req, res) => {
   try {
     const {
       name,
@@ -74,11 +74,8 @@ export const addOutEnquiry = async (req,res)=>{
       enquiryType,
       budget,
     } = req.body;
-    
 
-    const {franchiesCode} = req.query;
-
-    
+    const { franchiesCode } = req.query;
 
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
@@ -113,7 +110,7 @@ export const addOutEnquiry = async (req,res)=>{
     console.log(error);
     return res.status(500).json({ message: error.message });
   }
-}
+};
 
 export const updateEnquiryStatus = async (req, res) => {
   try {
@@ -194,7 +191,7 @@ export const updateEnquiry = async (req, res) => {
       });
     }
 
-     await database.query(
+    await database.query(
       `UPDATE enquiry SET name= ? , email = ?, mobileNo = ?, gender = ?, tattooStyle=?,tattooDescription=?,enquiryType=?,budget=? WHERE id = ?`,
       [
         name,
@@ -240,8 +237,12 @@ export const getAllEnquiry = async (req, res) => {
     const offset = (page - 1) * size;
 
     const [response] = await database.query(
-      `SELECT * FROM enquiry ORDER BY id DESC LIMIT ? OFFSET ? WHERE franchiesCode=?`,
-      [size, offset,franchiesCode],
+      `SELECT * 
+   FROM enquiry 
+   WHERE franchiesCode = ?
+   ORDER BY id DESC 
+   LIMIT ? OFFSET ?`,
+      [franchiesCode, size, offset],
     );
 
     const [[{ total }]] = await database.query(
