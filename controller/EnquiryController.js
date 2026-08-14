@@ -76,7 +76,9 @@ export const addOutEnquiry = async (req,res)=>{
     } = req.body;
     
 
-    const franchiesCode = req.user.query;
+    const {franchiesCode} = req.query;
+
+    
 
     if (!name) {
       return res.status(400).json({ message: "Name is required" });
@@ -238,8 +240,8 @@ export const getAllEnquiry = async (req, res) => {
     const offset = (page - 1) * size;
 
     const [response] = await database.query(
-      `SELECT * FROM enquiry ORDER BY id DESC LIMIT ? OFFSET ?`,
-      [size, offset],
+      `SELECT * FROM enquiry ORDER BY id DESC LIMIT ? OFFSET ? WHERE franchiesCode=?`,
+      [size, offset,franchiesCode],
     );
 
     const [[{ total }]] = await database.query(
