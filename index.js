@@ -27,7 +27,9 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://admin.1991tattoos.com",
-      "http://admin.1991tattoos.com"
+      "http://admin.1991tattoos.com",
+      "https://landing.inkflytattoo.com",
+      "http://landing.inkflytattoo.com"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
