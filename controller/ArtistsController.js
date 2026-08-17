@@ -37,7 +37,6 @@ export const addArtist = async (req, res) => {
         message: "Username already registed",
       });
     }
-    
 
     // generate artistCode like emp199101, emp199102 ...
     // prefix is kept as 'emp1991' to match requested format
@@ -49,18 +48,24 @@ export const addArtist = async (req, res) => {
       [`${prefix}%`, id],
     );
 
-let nextNumber = 1;
-if (latestRows.length > 0) {
-  const latestCode = latestRows[0].artistCode || "";
-  const suffixPart = latestCode.slice(prefix.length); // everything after "emp1991"
-  const lastNum = parseInt(suffixPart, 10);
-  if (!isNaN(lastNum)) nextNumber = lastNum + 1;
-}
+    let nextNumber = 1;
+    if (latestRows.length > 0) {
+      const latestCode = latestRows[0].artistCode || "";
+      const suffixPart = latestCode.slice(prefix.length); // everything after "emp1991"
+      const lastNum = parseInt(suffixPart, 10);
+      if (!isNaN(lastNum)) nextNumber = lastNum + 1;
+    }
 
-const suffix = String(nextNumber).padStart(2, "0");
-const artistCode = `${prefix}${suffix}`;
+    const suffix = String(nextNumber).padStart(2, "0");
+    const artistCode = `${prefix}${suffix}`;
 
-    const model = new artists({ artistName, artistNumber, username, password, artistCode });
+    const model = new artists({
+      artistName,
+      artistNumber,
+      username,
+      password,
+      artistCode,
+    });
 
     const response = await addArtistService(model, id);
 
@@ -82,8 +87,11 @@ const artistCode = `${prefix}${suffix}`;
 
 export const getAllArtists = async (req, res) => {
   try {
+    const franchiesCode = req.user.franchiesId;
+
     const [response] = await database.query(
-      `SELECT id,artistName,artistNumber,username,role FROM tattooArtists`,
+      `SELECT id,artistName,artistNumber,username,role FROM tattooArtists WHERE franchiesCode = ?`,
+      [franchiesCode],
     );
 
     return res.status(200).json({
@@ -170,13 +178,13 @@ export const editArtist = async (req, res) => {
     if (password === "") {
       await database.query(
         `UPDATE tattooArtists SET  artistName = ?, artistNumber = ?,username = ?,password = ? WHERE id = ?`,
-        [artistName, artistNumber, username, exitpassword,id],
+        [artistName, artistNumber, username, exitpassword, id],
       );
     } else {
       const hashPassword = await bcrypt.hash(password, passRound);
       await database.query(
         `UPDATE tattooArtists SET  artistName = ?, artistNumber=?,username=?,password=? WHERE id = ?`,
-        [artistName, artistNumber, username, hashPassword,id],
+        [artistName, artistNumber, username, hashPassword, id],
       );
     }
 
@@ -184,7 +192,6 @@ export const editArtist = async (req, res) => {
       message: "update successfully",
     });
   } catch (error) {
-   
     return res.status(500).json({
       message: error.message,
     });

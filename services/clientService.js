@@ -12,7 +12,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
 
     let tattooArtist;
 
-    if(payload.tattooArtist === ""){
+    if(!payload.tattooArtist || payload.tattooArtist === ""){
       tattooArtist = "Admin"
     }else{
       tattooArtist = payload.tattooArtist
@@ -25,7 +25,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
       id,
       payload.name,
       payload.gender,
-      payload.email,
+      payload.email || "",
       payload.mobileno,
       tattooArtist,
       payload.paymentType,
@@ -47,7 +47,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
       payload.tattoodetails,
       payload.inch,
       payload.price,
-      image,
+      image || "",
     ];
 
     await database.query(ttQuery, ttValues);

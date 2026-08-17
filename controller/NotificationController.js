@@ -6,13 +6,14 @@ export const getBirthNotifi = async (req, res) => {
 
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
+    const franchiesCode = req.user?.franchiesId
 
 
 
     const [response] = await database.query(
       `SELECT name, mobileno FROM clients 
-       WHERE DATE_FORMAT(dob, '%m-%d') = ?`,
-      [`${month}-${day}`]
+       WHERE DATE_FORMAT(dob, '%m-%d') = ? & franchiesCode = ?`,
+      [`${month}-${day}`,franchiesCode]
     );
 
     if (response?.length === 0) {

@@ -40,8 +40,8 @@ export const addClinets = async (req, res) => {
 
     if (response.success) {
       await database.query(
-        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload?.username, "Clients", "add", pdata],
+        `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
+        [franchiesCode, payload?.username, "Clients", "add", pdata],
       );
       return res.status(200).json({
         message: response.message,
@@ -202,7 +202,7 @@ export const editClient = async (req, res) => {
     const payload = JSON.parse(req.body.clients);
    const id = req.user.id
     const imageFile = req.files?.tattooImage?.[0];
-
+ const franchiesCode = req.user.franchiesId;
     let blobUrl = null;
 
     if (imageFile) {
@@ -220,8 +220,8 @@ export const editClient = async (req, res) => {
 
     if (response.success) {
       await database.query(
-        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [payload.username, "Clients", "edit", pdata],
+        `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
+        [franchiesCode,payload.username, "Clients", "edit", pdata],
       );
 
       return res.status(200).json({ message: response.message });

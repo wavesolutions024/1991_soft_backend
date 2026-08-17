@@ -47,8 +47,8 @@ export const addEnquiry = async (req, res) => {
     if (response.success) {
       const payloadString = JSON.stringify(payload);
       await database.query(
-        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [username, "Enquiry", "add", payloadString],
+        `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
+        [franchiesCode,username, "Enquiry", "add", payloadString],
       );
 
       return res.status(200).json({ message: response.message });
@@ -178,6 +178,8 @@ export const updateEnquiry = async (req, res) => {
       enquiryType,
       budget,
     } = req.body;
+        const franchiesCode = req.user.franchiesId;
+
 
     if (!name) {
       return res.status(400).json({
@@ -220,8 +222,8 @@ export const updateEnquiry = async (req, res) => {
     const payloadString = JSON.stringify(payload);
 
     await database.query(
-      `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-      [username, "Enquiry", "edit", payloadString],
+      `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
+      [franchiesCode,username, "Enquiry", "edit", payloadString],
     );
     return res.status(200).json({
       message: "update successfully",

@@ -41,16 +41,17 @@ export const addAppointmentService = async (payload, franchiesCode) => {
   }
 };
 
-export const getAllAppointmentsService = async (page = 1, size = 10) => {
+export const getAllAppointmentsService = async (franchiesCode,page = 1, size = 10) => {
   try {
     const offset = (page - 1) * size;
+     
     const [response] = await database.query(
-      `SELECT * FROM appointments ORDER BY id DESC LIMIT ? OFFSET ?`,
-      [size, offset],
+      `SELECT * FROM appointments  WHERE franchiesCode = ? ORDER BY id DESC LIMIT ? OFFSET ?`,
+      [franchiesCode,size, offset],
     );
 
     const [[{ total }]] = await database.query(
-      `SELECT COUNT(DISTINCT id) AS total FROM appointments`,
+      `SELECT COUNT(DISTINCT id) AS total FROM appointments WHERE franchiesCode=?`,[franchiesCode]
     );
 
     return {
