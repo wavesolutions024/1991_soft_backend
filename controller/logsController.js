@@ -16,7 +16,7 @@ export const getAllLogs = async (req, res) => {
     );
 
     const [[ {total} ]] = await database.query(
-      "SELECT COUNT(*) AS total FROM logs",
+      "SELECT COUNT(*) AS total FROM logs WHERE franchiesCode = ?",[franchiesCode]
     );
 
     return res.status(200).json({

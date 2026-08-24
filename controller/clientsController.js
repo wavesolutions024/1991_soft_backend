@@ -5,6 +5,12 @@ import {
 } from "../services/clientService.js";
 import dotenv from "dotenv";
 import { put } from "@vercel/blob";
+import ExcelJS from "exceljs";
+import fs from "fs/promises";
+import os from "os";
+import path from "path";
+
+import { encryptExcel } from "../utils/encryptExcel.js";
 
 dotenv.config();
 
@@ -35,6 +41,8 @@ export const addClinets = async (req, res) => {
     const response = await addClientsService(payload, blob?.url || null, franchiesCode,userId);
 
     const pdata = JSON.stringify(payload);
+
+
 
 
 
@@ -75,43 +83,79 @@ export const getAllClients = async (req, res) => {
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
     const offset = (page - 1) * size;
 
-    const search = (req.query.search || req.query.query || "").trim();
+    const search = (
+      req.query.search ||
+      req.query.query ||
+      ""
+    ).trim();
 
     const conditions = [];
     const params = [];
 
-    // Scope every request to the caller's franchise
+    // =====================================================
+    // 1. Franchise condition - ALWAYS compulsory
+    // =====================================================
     conditions.push("cl.franchiesCode = ?");
     params.push(franchiesCode);
 
-    // Employees only see clients assigned to them
-    if (role !== "Admin") {
+    // =====================================================
+    // 2. Search condition
+    //
+    // If search is available:
+    // Search ALL clients from the same franchise
+    //
+    // If search is NOT available:
+    // Artist sees only their own clients
+    // Admin sees all clients
+    // =====================================================
+    if (search) {
+      conditions.push(
+        "(cl.name LIKE ? OR cl.mobileno LIKE ?)"
+      );
+
+      const like = `%${search}%`;
+
+      params.push(like, like);
+    } else if (role !== "Admin") {
       conditions.push("cl.a_id = ?");
       params.push(id);
     }
 
-    if (search) {
-      conditions.push("(cl.name LIKE ? OR cl.mobileno LIKE ?)");
-      const like = `%${search}%`;
-      params.push(like, like);
-    }
-
+    // =====================================================
+    // 3. VIP filter
+    // =====================================================
     if (vip !== undefined) {
       conditions.push("cl.VIP = ?");
-      params.push(vip === "true" || vip === "1" ? 1 : 0);
+
+      params.push(
+        vip === "true" || vip === "1" ? 1 : 0
+      );
     }
 
+    // =====================================================
+    // 4. Semi VIP filter
+    // =====================================================
     if (semiVip !== undefined) {
       conditions.push("cl.semiVIP = ?");
-      params.push(semiVip === "true" || semiVip === "1" ? 1 : 0);
+
+      params.push(
+        semiVip === "true" || semiVip === "1" ? 1 : 0
+      );
     }
 
+    // =====================================================
+    // 5. WHERE clause
+    // =====================================================
     const whereClause = conditions.length
       ? `WHERE ${conditions.join(" AND ")}`
       : "";
 
-    // Paginate clients first (subquery), THEN join tattoo details,
-    // so a client with multiple tattoo rows doesn't skew page size
+    // =====================================================
+    // 6. Get clients with pagination
+    //
+    // First paginate clients,
+    // THEN join tattoo details
+    // =====================================================
     const [response] = await database.query(
       `
       SELECT
@@ -134,6 +178,10 @@ export const getAllClients = async (req, res) => {
       [...params, size, offset]
     );
 
+    // =====================================================
+    // 7. Get total count
+    //    Same WHERE condition is used
+    // =====================================================
     const [[{ total }]] = await database.query(
       `
       SELECT COUNT(*) AS total
@@ -143,6 +191,9 @@ export const getAllClients = async (req, res) => {
       params
     );
 
+    // =====================================================
+    // 8. Response
+    // =====================================================
     return res.status(200).json({
       message: "success",
       data: response,
@@ -153,7 +204,10 @@ export const getAllClients = async (req, res) => {
         totalPages: Math.ceil(total / size),
       },
     });
+
   } catch (error) {
+    console.error("getAllClients error:", error);
+
     return res.status(500).json({
       message: error.message,
     });
@@ -334,3 +388,202 @@ export const exportAllClients = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+export const exportClientExcel = async (req,res)=>{
+    let tempDir;
+   try {
+    const franchiesId = req.user?.franchiesId;
+
+    if (!franchiesId) {
+      return res.status(401).json({
+        message: "Franchise ID not found",
+      });
+    }
+
+    // -----------------------------------
+    // 1. Get clients from database
+    // -----------------------------------
+
+    const [rows] = await database.query(
+      `
+      SELECT 
+        cl.*,
+        td.tattoodetails,
+        td.inch,
+        td.price,
+        td.tattooImage
+      FROM clients AS cl
+      LEFT JOIN tattoodetails AS td
+        ON cl.id = td.clientId
+      WHERE cl.franchiesCode = ?
+      ORDER BY cl.id DESC
+      `,
+      [franchiesId]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({
+        message: "Data not found",
+      });
+    }
+
+    // -----------------------------------
+    // 2. Create Excel workbook
+    // -----------------------------------
+
+    const workbook = new ExcelJS.Workbook();
+
+    const worksheet = workbook.addWorksheet("Clients");
+
+    const headers = Object.keys(rows[0]);
+
+    worksheet.columns = headers.map((header) => ({
+      header,
+      key: header,
+      width: 20,
+    }));
+
+    // Add rows
+    for (const row of rows) {
+      const excelRow = {};
+
+      for (const header of headers) {
+        excelRow[header] =
+          row[header] === null ||
+          row[header] === undefined
+            ? ""
+            : row[header];
+      }
+
+      worksheet.addRow(excelRow);
+    }
+
+    // -----------------------------------
+    // 3. Excel formatting
+    // -----------------------------------
+
+    const headerRow = worksheet.getRow(1);
+
+    headerRow.font = {
+      bold: true,
+    };
+
+    headerRow.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+    };
+
+    worksheet.views = [
+      {
+        state: "frozen",
+        ySplit: 1,
+      },
+    ];
+
+    // -----------------------------------
+    // 4. Create temporary directory
+    // -----------------------------------
+
+    tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "client-export-")
+    );
+
+    const originalFile = path.join(
+      tempDir,
+      "clients.xlsx"
+    );
+
+    const encryptedFile = path.join(
+      tempDir,
+      "clients_protected.xlsx"
+    );
+
+    // -----------------------------------
+    // 5. Save XLSX temporarily
+    // -----------------------------------
+
+    await workbook.xlsx.writeFile(originalFile);
+
+    // -----------------------------------
+    // 6. Get password
+    // -----------------------------------
+
+    const password =
+      process.env.EXCEL_EXPORT_PASSWORD;
+
+    if (!password) {
+      throw new Error(
+        "EXCEL_EXPORT_PASSWORD is not configured"
+      );
+    }
+
+    // -----------------------------------
+    // 7. Encrypt XLSX
+    // -----------------------------------
+
+    await encryptExcel({
+      inputFile: originalFile,
+      outputFile: encryptedFile,
+      password,
+    });
+
+    // -----------------------------------
+    // 8. Read encrypted file
+    // -----------------------------------
+
+    const fileBuffer = await fs.readFile(
+      encryptedFile
+    );
+
+    // -----------------------------------
+    // 9. Send to browser
+    // -----------------------------------
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="clients_export.xlsx"'
+    );
+
+    res.setHeader(
+      "Content-Length",
+      fileBuffer.length
+    );
+
+    return res.status(200).send(fileBuffer);
+
+  } catch (error) {
+
+    console.error(
+      "Export clients error:",
+      error
+    );
+
+    return res.status(500).json({
+      message: error.message,
+    });
+
+  } finally {
+
+    // -----------------------------------
+    // 10. Delete temporary files
+    // -----------------------------------
+
+    if (tempDir) {
+      await fs.rm(tempDir, {
+        recursive: true,
+        force: true,
+      }).catch((error) => {
+        console.error(
+          "Temporary file cleanup error:",
+          error
+        );
+      });
+    }
+  }
+}
+
