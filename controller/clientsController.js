@@ -76,6 +76,8 @@ export const getAllClients = async (req, res) => {
     const role = req.user.role;
     const franchiesCode = req.user.franchiesId;
 
+
+
     const vip = req.query.vip;
     const semiVip = req.query.semiVip;
 

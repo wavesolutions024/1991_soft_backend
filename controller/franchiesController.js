@@ -117,6 +117,7 @@ export const loginFranchiesCtrl = async (req, res) => {
 export const getUserDataViaToken = async (req, res) => {
   try {
     const id = req.user.id;
+    const franchiesId = req.user.franchiesId;
 
     
 
@@ -129,9 +130,12 @@ export const getUserDataViaToken = async (req, res) => {
     let response;
 
      [response] = await database.query(
-        `SELECT id,franchiesCode, artistName,artistNumber,username,role FROM tattooArtists WHERE artistCode = ?`,
-        [id],
-      );
+  `SELECT id, franchiesCode, artistName, artistNumber, username, role
+   FROM tattooArtists
+   WHERE artistCode = ? AND franchiesCode = ?
+   LIMIT 1`,
+  [id, franchiesId]
+);
 
 
 

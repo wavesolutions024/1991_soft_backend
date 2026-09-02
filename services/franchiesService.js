@@ -39,6 +39,9 @@ export const loginFranchies = async (username, password) => {
 
     [existUser] = await database.query(query, value);
 
+   
+    
+
     let franchiesId;
     let id
 
@@ -57,6 +60,8 @@ export const loginFranchies = async (username, password) => {
     }
 
     const user = existUser[0];
+
+   
 
     
 
