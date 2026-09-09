@@ -35,58 +35,58 @@ export const getWhatsappWebhook = (req, res) => {
   }
 };
 
-  export const postWhatsappWebhook = async (req, res) => {
-      console.log("🔥🔥 WEBHOOK POST CONTROLLER HIT 🔥🔥");
-    try {
-      console.log(
-        "WhatsApp webhook received:",
-        JSON.stringify(req.body, null, 2)
-      );
+export const postWhatsappWebhook = async (req, res) => {
+  console.log("🔥🔥 WEBHOOK POST CONTROLLER HIT 🔥🔥");
+  try {
+    console.log(
+      "WhatsApp webhook received:",
+      JSON.stringify(req.body, null, 2),
+    );
 
-      // Meta ला लगेच 200
-      res.sendStatus(200);
+    // Meta ला लगेच 200
+    res.sendStatus(200);
 
-      const body = req.body;
+    const body = req.body;
 
-      if (body.object !== "whatsapp_business_account") {
-        return;
-      }
+    if (body.object !== "whatsapp_business_account") {
+      return;
+    }
 
-      for (const entry of body.entry || []) {
-        for (const change of entry.changes || []) {
-          if (change.field !== "messages") continue;
+    for (const entry of body.entry || []) {
+      for (const change of entry.changes || []) {
+        if (change.field !== "messages") continue;
 
-          const value = change.value;
+        const value = change.value;
 
-          // MESSAGE STATUS
-          for (const status of value.statuses || []) {
-            console.log("================================");
-            console.log("MESSAGE STATUS");
-            console.log("ID:", status.id);
-            console.log("STATUS:", status.status);
-            console.log("RECIPIENT:", status.recipient_id);
-            console.log("================================");
+        // MESSAGE STATUS
+        for (const status of value.statuses || []) {
+          console.log("================================");
+          console.log("MESSAGE STATUS");
+          console.log("ID:", status.id);
+          console.log("STATUS:", status.status);
+          console.log("RECIPIENT:", status.recipient_id);
+          console.log("================================");
+        }
+
+        // INCOMING MESSAGE
+        for (const message of value.messages || []) {
+          console.log("================================");
+          console.log("INCOMING MESSAGE");
+          console.log("FROM:", message.from);
+          console.log("TYPE:", message.type);
+
+          if (message.type === "text") {
+            console.log("TEXT:", message.text?.body);
           }
 
-          // INCOMING MESSAGE
-          for (const message of value.messages || []) {
-            console.log("================================");
-            console.log("INCOMING MESSAGE");
-            console.log("FROM:", message.from);
-            console.log("TYPE:", message.type);
-
-            if (message.type === "text") {
-              console.log("TEXT:", message.text?.body);
-            }
-
-            console.log("================================");
-          }
+          console.log("================================");
         }
       }
-    } catch (error) {
-      console.error("Webhook processing error:", error);
     }
-  };
+  } catch (error) {
+    console.error("Webhook processing error:", error);
+  }
+};
 
 // whatsapp template
 
@@ -112,80 +112,44 @@ export const createWpTemplate = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const {
-      customerPhone,
-      customerName,
-      tattoo,
-      size,
-      payment,
-    } = req.body;
+    const { customerPhone, customerName, tattoo, size, payment } = req.body;
 
-    if (
-      !customerPhone ||
-      !customerName ||
-      !tattoo ||
-      !size ||
-      !payment
-    ) {
+    if (!customerPhone || !customerName || !tattoo || !size || !payment) {
       return res.status(400).json({
         message: "all fields are required",
       });
     }
 
-    const phone = String(customerPhone).replace(/\D/g, "");
-
-    const payload = {
-      messaging_product: "whatsapp",
-      to: phone, // दुसरा WhatsApp number वापरून test कर
-      type: "template",
-      template: {
-        name: "hello_world",
-        language: {
-          code: "en_US",
-        },
-      },
-    };
-
-    // console.log(
-    //   "WHATSAPP PAYLOAD:",
-    //   JSON.stringify(payload, null, 2)
-    // );
-
-    const response = await axios.post(
-      `https://graph.facebook.com/v26.0/${PHONE_NUMBER_ID}/messages`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await sendTattooSessionConfirmation({
+      customerPhone,
+      customerName,
+      tattoo,
+      size,
+      payment,
+    });
 
     console.log("SUCCESS:", response.data);
 
-    return res.status(200).json({
-      message: "message sent successfully",
-      data: response.data,
-    });
-
+    if (response.success) {
+      return res.status(200).json({
+        message: "message sent successfully",
+        data: response.data,
+      });
+    } else {
+      return res.status(500).json({
+        message: "message sent successfully",
+        data: response.message,
+      });
+    }
   } catch (error) {
     console.log(
       "WHATSAPP ERROR:",
-      JSON.stringify(
-        error.response?.data || error.message,
-        null,
-        2
-      )
+      JSON.stringify(error.response?.data || error.message, null, 2),
     );
 
-    return res.status(
-      error.response?.status || 500
-    ).json({
+    return res.status(error.response?.status || 500).json({
       success: false,
-      message:
-        error.response?.data?.error?.message ||
-        error.message,
+      message: error.response?.data?.error?.message || error.message,
       error: error.response?.data?.error || null,
     });
   }
