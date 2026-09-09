@@ -35,57 +35,58 @@ export const getWhatsappWebhook = (req, res) => {
   }
 };
 
-export const postWhatsappWebhook = async (req, res) => {
-  try {
-    console.log(
-      "WhatsApp webhook received:",
-      JSON.stringify(req.body, null, 2)
-    );
+  export const postWhatsappWebhook = async (req, res) => {
+      console.log("🔥🔥 WEBHOOK POST CONTROLLER HIT 🔥🔥");
+    try {
+      console.log(
+        "WhatsApp webhook received:",
+        JSON.stringify(req.body, null, 2)
+      );
 
-    // Meta ला लगेच 200
-    res.sendStatus(200);
+      // Meta ला लगेच 200
+      res.sendStatus(200);
 
-    const body = req.body;
+      const body = req.body;
 
-    if (body.object !== "whatsapp_business_account") {
-      return;
-    }
+      if (body.object !== "whatsapp_business_account") {
+        return;
+      }
 
-    for (const entry of body.entry || []) {
-      for (const change of entry.changes || []) {
-        if (change.field !== "messages") continue;
+      for (const entry of body.entry || []) {
+        for (const change of entry.changes || []) {
+          if (change.field !== "messages") continue;
 
-        const value = change.value;
+          const value = change.value;
 
-        // MESSAGE STATUS
-        for (const status of value.statuses || []) {
-          console.log("================================");
-          console.log("MESSAGE STATUS");
-          console.log("ID:", status.id);
-          console.log("STATUS:", status.status);
-          console.log("RECIPIENT:", status.recipient_id);
-          console.log("================================");
-        }
-
-        // INCOMING MESSAGE
-        for (const message of value.messages || []) {
-          console.log("================================");
-          console.log("INCOMING MESSAGE");
-          console.log("FROM:", message.from);
-          console.log("TYPE:", message.type);
-
-          if (message.type === "text") {
-            console.log("TEXT:", message.text?.body);
+          // MESSAGE STATUS
+          for (const status of value.statuses || []) {
+            console.log("================================");
+            console.log("MESSAGE STATUS");
+            console.log("ID:", status.id);
+            console.log("STATUS:", status.status);
+            console.log("RECIPIENT:", status.recipient_id);
+            console.log("================================");
           }
 
-          console.log("================================");
+          // INCOMING MESSAGE
+          for (const message of value.messages || []) {
+            console.log("================================");
+            console.log("INCOMING MESSAGE");
+            console.log("FROM:", message.from);
+            console.log("TYPE:", message.type);
+
+            if (message.type === "text") {
+              console.log("TEXT:", message.text?.body);
+            }
+
+            console.log("================================");
+          }
         }
       }
+    } catch (error) {
+      console.error("Webhook processing error:", error);
     }
-  } catch (error) {
-    console.error("Webhook processing error:", error);
-  }
-};
+  };
 
 // whatsapp template
 
