@@ -21,7 +21,8 @@ module.exports = {
         WHATSAPP_ACCESS_TOKEN:"EABADiZB08efcBSQsyCAaO9c28Caj6rZCJG3oHkRL4ZCRkJGXY85nhY7u147Yn6o5FajZAcqxpO0e4oq8mzZBu4pvZCm5HEfXneBGrm8MsMQZAfOxz3PBXhd38paZByvjxDRGrEiqG1IpcZBn2f7rANayf29dvXQ8b63mzwVZBtkzj2iXrzwUWtnZBOpDqLj8ZAZApP5WH0gZDZD",
         WHATSAPP_BUSINESS_ACCOUNT_ID:"1117014760662587", 
         WHATSAPP_PHONE_NUMBER_ID:"1343549445488835",
-        META_GRAPH_VERSION:"v23.0"
+        META_GRAPH_VERSION:"v23.0",
+        META_APP_ID:"4507499142871543"
       },
       error_file: "./logs/err.log",
       out_file: "./logs/out.log",

@@ -5,7 +5,7 @@ import fs from "fs";
 const uploadPath = path.join(process.cwd(), "images");
 
 
-const storage = multer.diskStorage({
+export const storage = multer.diskStorage({
 
   destination: (req, file, cb) => {
     if (!fs.existsSync(uploadPath)) {

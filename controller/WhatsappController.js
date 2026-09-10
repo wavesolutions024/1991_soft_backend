@@ -8,10 +8,11 @@ dotenv.config();
 
 const wpToken = process.env.WHATSAPP_VERIFY_TOKEN;
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION;
-
+import FormData from "form-data";
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const WABA_ID = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const APP_ID = process.env.META_APP_ID;
 
 export const getWhatsappWebhook = (req, res) => {
   try {
@@ -104,6 +105,133 @@ export const createWpTemplate = async (req, res) => {
       success: false,
       message: "Template creation failed",
       error: error.response?.data || error.message,
+    });
+  }
+};
+
+export const uploadImageToMeta = async (req, res) => {
+  try {
+    const imageFile = req.files?.file?.[0];
+
+    if (!imageFile) {
+      return res.status(400).json({
+        success: false,
+        message: "Tattoo image is required",
+      });
+    }
+
+    // ==========================================
+    // STEP 1: CREATE UPLOAD SESSION
+    // ==========================================
+
+    const sessionResponse = await axios.post(
+      `https://graph.facebook.com/${GRAPH_VERSION}/${APP_ID}/uploads`,
+      null,
+      {
+        params: {
+          file_length: imageFile.size,
+          file_type: imageFile.mimetype,
+        },
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+      }
+    );
+
+    const uploadSessionId = sessionResponse.data.id;
+
+    console.log("UPLOAD SESSION:", uploadSessionId);
+
+
+    // ==========================================
+    // STEP 2: UPLOAD IMAGE TO SESSION
+    // ==========================================
+
+    const uploadResponse = await axios.post(
+      `https://graph.facebook.com/${GRAPH_VERSION}/${uploadSessionId}`,
+      imageFile.buffer,
+      {
+        headers: {
+          Authorization: `OAuth ${ACCESS_TOKEN}`,
+          "Content-Type": imageFile.mimetype,
+          "file_offset": "0",
+        },
+      }
+    );
+
+    console.log("META HEADER HANDLE:", uploadResponse.data);
+
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return res.status(200).json({
+      success: true,
+      session_id: uploadSessionId,
+      header_handle: uploadResponse.data.h,
+    });
+
+  } catch (error) {
+    console.log(
+      "META TEMPLATE IMAGE UPLOAD ERROR:",
+      error.response?.data || error.message
+    );
+
+    return res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
+export const getWhatsAppTemplates = async (req, res) => {
+  try {
+    const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+      },
+    });
+
+    return res.status(200).json({
+      data: response.data,
+    });
+  } catch (error) {
+    console.log("GET TEMPLATE ERROR:", error.response?.data || error.message);
+    return res.status(500).json({
+      message: error.message,
+    });
+    throw error;
+  }
+};
+
+export const getImageStatus = async (req, res) => {
+  try {
+    const sessionResponse = await axios.post(
+      `https://graph.facebook.com/${GRAPH_VERSION}/${APP_ID}/uploads`,
+      null,
+      {
+        params: {
+          file_length: imageFile.size,
+          file_type: imageFile.mimetype,
+        },
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+      },
+    );
+
+    const uploadSessionId = sessionResponse.data.id;
+
+    return res.status(200).json({
+      id: uploadSessionId,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: error.message,
     });
   }
 };

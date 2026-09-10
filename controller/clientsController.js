@@ -11,6 +11,7 @@ import os from "os";
 import path from "path";
 
 import { encryptExcel } from "../utils/encryptExcel.js";
+import { sendTattooSessionConfirmation } from "../services/WhatsappService.js";
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ export const addClinets = async (req, res) => {
     const id = req.user.id;
     const role = req.user.role;
 
-    const userId = role === "Admin" ? 0 : id
+    const userId = role === "Admin" ? 0 : id;
 
     // const baseUrl = process.env.BASE_URL;
 
@@ -38,15 +39,26 @@ export const addClinets = async (req, res) => {
       });
     }
 
-    const response = await addClientsService(payload, blob?.url || null, franchiesCode,userId);
+    const response = await addClientsService(
+      payload,
+      blob?.url || null,
+      franchiesCode,
+      userId,
+    );
 
     const pdata = JSON.stringify(payload);
 
-
-
-
-
     if (response.success) {
+      await sendTattooSessionConfirmation({
+        franchiesCode:franchiesCode,
+        customerPhone: payload?.mobileno,
+        customerName: payload?.name,
+        tattoo: payload?.tattoodetails,
+        size: payload?.inch,
+        payment: payload?.price,
+      });
+
+
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
         [franchiesCode, payload?.username, "Clients", "add", pdata],
@@ -55,7 +67,7 @@ export const addClinets = async (req, res) => {
         message: response.message,
       });
     } else {
-      console.log(response.message)
+      console.log(response.message);
       return res.status(500).json({
         message: response.message,
       });
@@ -76,8 +88,6 @@ export const getAllClients = async (req, res) => {
     const role = req.user.role;
     const franchiesCode = req.user.franchiesId;
 
-
-
     const vip = req.query.vip;
     const semiVip = req.query.semiVip;
 
@@ -85,11 +95,7 @@ export const getAllClients = async (req, res) => {
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
     const offset = (page - 1) * size;
 
-    const search = (
-      req.query.search ||
-      req.query.query ||
-      ""
-    ).trim();
+    const search = (req.query.search || req.query.query || "").trim();
 
     const conditions = [];
     const params = [];
@@ -111,9 +117,7 @@ export const getAllClients = async (req, res) => {
     // Admin sees all clients
     // =====================================================
     if (search) {
-      conditions.push(
-        "(cl.name LIKE ? OR cl.mobileno LIKE ?)"
-      );
+      conditions.push("(cl.name LIKE ? OR cl.mobileno LIKE ?)");
 
       const like = `%${search}%`;
 
@@ -129,9 +133,7 @@ export const getAllClients = async (req, res) => {
     if (vip !== undefined) {
       conditions.push("cl.VIP = ?");
 
-      params.push(
-        vip === "true" || vip === "1" ? 1 : 0
-      );
+      params.push(vip === "true" || vip === "1" ? 1 : 0);
     }
 
     // =====================================================
@@ -140,9 +142,7 @@ export const getAllClients = async (req, res) => {
     if (semiVip !== undefined) {
       conditions.push("cl.semiVIP = ?");
 
-      params.push(
-        semiVip === "true" || semiVip === "1" ? 1 : 0
-      );
+      params.push(semiVip === "true" || semiVip === "1" ? 1 : 0);
     }
 
     // =====================================================
@@ -177,7 +177,7 @@ export const getAllClients = async (req, res) => {
         ON cl.id = td.clientId
       ORDER BY cl.id DESC
       `,
-      [...params, size, offset]
+      [...params, size, offset],
     );
 
     // =====================================================
@@ -190,7 +190,7 @@ export const getAllClients = async (req, res) => {
       FROM clients AS cl
       ${whereClause}
       `,
-      params
+      params,
     );
 
     // =====================================================
@@ -206,7 +206,6 @@ export const getAllClients = async (req, res) => {
         totalPages: Math.ceil(total / size),
       },
     });
-
   } catch (error) {
     console.error("getAllClients error:", error);
 
@@ -256,9 +255,9 @@ export const editClient = async (req, res) => {
   try {
     const { clientId } = req.query;
     const payload = JSON.parse(req.body.clients);
-   const id = req.user.id
+    const id = req.user.id;
     const imageFile = req.files?.tattooImage?.[0];
- const franchiesCode = req.user.franchiesId;
+    const franchiesCode = req.user.franchiesId;
     let blobUrl = null;
 
     if (imageFile) {
@@ -272,12 +271,12 @@ export const editClient = async (req, res) => {
 
     const response = await editClientService(payload, blobUrl, clientId);
 
-     const pdata = JSON.stringify(payload);
+    const pdata = JSON.stringify(payload);
 
     if (response.success) {
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-        [franchiesCode,payload.username, "Clients", "edit", pdata],
+        [franchiesCode, payload.username, "Clients", "edit", pdata],
       );
 
       return res.status(200).json({ message: response.message });
@@ -314,8 +313,6 @@ export const deleteClient = async (req, res) => {
       return res.status(200).json({
         message: "delete successfully",
       });
-
-
     }
   } catch (error) {
     return res.status(500).json({
@@ -384,16 +381,19 @@ export const exportAllClients = async (req, res) => {
     const csv = csvLines.join("\n");
 
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=clients_export.csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=clients_export.csv",
+    );
     return res.status(200).send(csv);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
-export const exportClientExcel = async (req,res)=>{
-    let tempDir;
-   try {
+export const exportClientExcel = async (req, res) => {
+  let tempDir;
+  try {
     const franchiesId = req.user?.franchiesId;
 
     if (!franchiesId) {
@@ -420,7 +420,7 @@ export const exportClientExcel = async (req,res)=>{
       WHERE cl.franchiesCode = ?
       ORDER BY cl.id DESC
       `,
-      [franchiesId]
+      [franchiesId],
     );
 
     if (!rows || rows.length === 0) {
@@ -451,10 +451,7 @@ export const exportClientExcel = async (req,res)=>{
 
       for (const header of headers) {
         excelRow[header] =
-          row[header] === null ||
-          row[header] === undefined
-            ? ""
-            : row[header];
+          row[header] === null || row[header] === undefined ? "" : row[header];
       }
 
       worksheet.addRow(excelRow);
@@ -486,19 +483,11 @@ export const exportClientExcel = async (req,res)=>{
     // 4. Create temporary directory
     // -----------------------------------
 
-    tempDir = await fs.mkdtemp(
-      path.join(os.tmpdir(), "client-export-")
-    );
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "client-export-"));
 
-    const originalFile = path.join(
-      tempDir,
-      "clients.xlsx"
-    );
+    const originalFile = path.join(tempDir, "clients.xlsx");
 
-    const encryptedFile = path.join(
-      tempDir,
-      "clients_protected.xlsx"
-    );
+    const encryptedFile = path.join(tempDir, "clients_protected.xlsx");
 
     // -----------------------------------
     // 5. Save XLSX temporarily
@@ -510,13 +499,10 @@ export const exportClientExcel = async (req,res)=>{
     // 6. Get password
     // -----------------------------------
 
-    const password =
-      process.env.EXCEL_EXPORT_PASSWORD;
+    const password = process.env.EXCEL_EXPORT_PASSWORD;
 
     if (!password) {
-      throw new Error(
-        "EXCEL_EXPORT_PASSWORD is not configured"
-      );
+      throw new Error("EXCEL_EXPORT_PASSWORD is not configured");
     }
 
     // -----------------------------------
@@ -533,9 +519,7 @@ export const exportClientExcel = async (req,res)=>{
     // 8. Read encrypted file
     // -----------------------------------
 
-    const fileBuffer = await fs.readFile(
-      encryptedFile
-    );
+    const fileBuffer = await fs.readFile(encryptedFile);
 
     // -----------------------------------
     // 9. Send to browser
@@ -543,49 +527,37 @@ export const exportClientExcel = async (req,res)=>{
 
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
 
     res.setHeader(
       "Content-Disposition",
-      'attachment; filename="clients_export.xlsx"'
+      'attachment; filename="clients_export.xlsx"',
     );
 
-    res.setHeader(
-      "Content-Length",
-      fileBuffer.length
-    );
+    res.setHeader("Content-Length", fileBuffer.length);
 
     return res.status(200).send(fileBuffer);
-
   } catch (error) {
-
-    console.error(
-      "Export clients error:",
-      error
-    );
+    console.error("Export clients error:", error);
 
     return res.status(500).json({
       message: error.message,
     });
-
   } finally {
-
     // -----------------------------------
     // 10. Delete temporary files
     // -----------------------------------
 
     if (tempDir) {
-      await fs.rm(tempDir, {
-        recursive: true,
-        force: true,
-      }).catch((error) => {
-        console.error(
-          "Temporary file cleanup error:",
-          error
-        );
-      });
+      await fs
+        .rm(tempDir, {
+          recursive: true,
+          force: true,
+        })
+        .catch((error) => {
+          console.error("Temporary file cleanup error:", error);
+        });
     }
   }
-}
-
+};
