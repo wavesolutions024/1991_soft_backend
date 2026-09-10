@@ -274,6 +274,14 @@ export const editClient = async (req, res) => {
     const pdata = JSON.stringify(payload);
 
     if (response.success) {
+       await sendTattooSessionConfirmation({
+        franchiesCode:franchiesCode,
+        customerPhone: payload?.mobileno,
+        customerName: payload?.name,
+        tattoo: payload?.tattoodetails,
+        size: payload?.inch,
+        payment: payload?.price,
+      });
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
         [franchiesCode, payload.username, "Clients", "edit", pdata],
