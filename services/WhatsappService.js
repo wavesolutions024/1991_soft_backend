@@ -16,7 +16,7 @@ export const createWhatsAppTemplate = async () => {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`;
 
     const data = {
-      name: "appointment_confirmation_inkfly",
+      name: "appointment_confirm_1991",
       language: "en_US",
 
       category: "UTILITY",
@@ -36,7 +36,7 @@ export const createWhatsAppTemplate = async () => {
           type: "BODY",
           text: `Hello {{1}},
 
-  Your appointment is confirmed at Inkfly Tattoo Studio.
+  Your appointment is confirmed at 1991 Tattoo Studio.
 
       Tattoo Session Summary
 
@@ -45,18 +45,12 @@ export const createWhatsAppTemplate = async () => {
       ⏰ Time: {{3}}
       💳 Advance: {{4}}
 
-  📍 Studio Location: https://maps.app.goo.gl/B6VyvioZQy73UMrq7
-
-  ⭐ Google Review: https://share.google/Vn3308xlKli9A4LUu
-
-  📸 Instagram: https://www.instagram.com/inkflytattoopune
-
-  Tattoo Care: https://www.inkflytattoo.com/tattoo-aftercare
-
-  📞 Contact:  +91 96070 09494
+  📍 Studio Location: https://maps.app.goo.gl/68YjtnccZhTg1Scz6
+  📸 Instagram: https://www.instagram.com/1991tattoos
+  📞 Contact:  +91 98817 42686
 
   Thank you,
-  Inkfly Tattoo Studio`,
+  1991 Tattoo Studio`,
 
           example: {
             body_text: [
@@ -67,7 +61,7 @@ export const createWhatsAppTemplate = async () => {
 
         {
           type: "FOOTER",
-          text: "Inkfly Tattoo Studio",
+          text: "1991 Tattoo Studio",
         },
 
         {
@@ -76,7 +70,7 @@ export const createWhatsAppTemplate = async () => {
             {
               type: "PHONE_NUMBER",
               text: "Call Us",
-              phone_number: "+919607009494",
+              phone_number: "+9198817 42686",
             },
           ],
         },
@@ -220,8 +214,8 @@ export const sendTattooAppoinmentConfirmation = async ({
     const phone = String(customerPhone).replace(/\D/g, "");
     const template =
       franchiesCode === 1
-        ? "appointment_confirmation_1991tattoostudio"
-        : "appointment_confirmation_inkfly";
+        ? "appointment_confirm_1991"
+        : "appointment_confirm_inkfly";
 
     const tattooImageUrl =
       franchiesCode === 1
