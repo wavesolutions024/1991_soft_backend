@@ -123,6 +123,14 @@ export const editAppointment = async (req, res) => {
     const response = await updateAppointmentService(id, payload);
 
     if (response.success) {
+      await sendTattooAppoinmentConfirmation({
+        franchiesCode: franchiesCode,
+        name: name,
+        date: date,
+        time: time,
+        advance: advanceAmount,
+        customerPhone: contactNumber,
+      })
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
         [
