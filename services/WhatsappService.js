@@ -16,7 +16,7 @@ export const createWhatsAppTemplate = async () => {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`;
 
     const data = {
-      name: "tattoo_session_confirmation_inkfly",
+      name: "appointment_confirmation_inkfly",
       language: "en_US",
 
       category: "UTILITY",
@@ -36,14 +36,14 @@ export const createWhatsAppTemplate = async () => {
           type: "BODY",
           text: `Hello {{1}},
 
-  Thank you for choosing Inkfly Tattoo Studio.
+  Your appointment is confirmed at Inkfly Tattoo Studio.
 
-  Tattoo Session Summary
+      Tattoo Session Summary
 
-  👤 Name: {{1}}
-  🖋️ Tattoo: {{2}}
-  📏 Size: {{3}}
-  💳 Payment: {{4}}
+      👤 Name: {{1}}
+      📅 Date: {{2}}
+      ⏰ Time: {{3}}
+      💳 Advance: {{4}}
 
   📍 Studio Location: https://maps.app.goo.gl/B6VyvioZQy73UMrq7
 
@@ -53,14 +53,14 @@ export const createWhatsAppTemplate = async () => {
 
   Tattoo Care: https://www.inkflytattoo.com/tattoo-aftercare
 
-  📞 Contact: +91 96070 09494
+  📞 Contact:  +91 96070 09494
 
   Thank you,
   Inkfly Tattoo Studio`,
 
           example: {
             body_text: [
-              ["Prajot Surey", "Scripted", "2 Inch", "Received (UPI)"],
+              ["Prajot Surey", "12 September 2026", "4:00 PM", "₹5,000"],
             ],
           },
         },
@@ -198,6 +198,98 @@ export const sendTattooSessionConfirmation = async ({
       JSON.stringify(error.response?.data, null, 2),
     );
 
+    return {
+      success: false,
+      message: error.response?.data?.error?.message || error.message,
+      error: error.response?.data,
+    };
+  }
+};
+
+export const sendTattooAppoinmentConfirmation = async ({
+  franchiesCode,
+  name,
+  date,
+  time,
+  advance,
+  customerPhone,
+}) => {
+  try {
+
+
+    const phone = String(customerPhone).replace(/\D/g, "");
+    const template =
+      franchiesCode === 1
+        ? "appointment_confirmation_1991tattoostudio"
+        : "appointment_confirmation_inkfly";
+
+    const tattooImageUrl =
+      franchiesCode === 1
+        ? "https://landing.1991tattoo.com/assets/tattoo2-C4f0QS2g.jpeg"
+        : "https://landing.inkflytattoo.com/assets/imag1-DE-6_4RU.png";
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: "template",
+      template: {
+        name: template,
+        language: {
+          code: "en_US",
+        },
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "image",
+                image: {
+                  link: tattooImageUrl,
+                },
+              },
+            ],
+          },
+          {
+            type: "body",
+            parameters: [
+              {
+                type: "text",
+                text: String(name),
+              },
+              {
+                type: "text",
+                text: String(date),
+              },
+              {
+                type: "text",
+                text: String(time),
+              },
+              {
+                type: "text",
+                text: String(advance),
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const response = await axios.post(
+      `https://graph.facebook.com/v26.0/${PHONE_NUMBER_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
     return {
       success: false,
       message: error.response?.data?.error?.message || error.message,

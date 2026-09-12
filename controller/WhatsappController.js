@@ -282,3 +282,50 @@ export const sendMessage = async (req, res) => {
     });
   }
 };
+
+
+// send appoinment message
+// export const sendAppoinmentMessage = async (req, res) => {
+//   try {
+//     const { name, date, tattoo, size, payment } = req.body;
+
+//     if (!customerPhone || !customerName || !tattoo || !size || !payment) {
+//       return res.status(400).json({
+//         message: "all fields are required",
+//       });
+//     }
+
+//     const response = await sendTattooSessionConfirmation({
+//       customerPhone,
+//       customerName,
+//       tattoo,
+//       size,
+//       payment,
+//     });
+
+//     console.log("SUCCESS:", response.data);
+
+//     if (response.success) {
+//       return res.status(200).json({
+//         message: "message sent successfully",
+//         data: response.data,
+//       });
+//     } else {
+//       return res.status(500).json({
+//         message: "message sent successfully",
+//         data: response.message,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(
+//       "WHATSAPP ERROR:",
+//       JSON.stringify(error.response?.data || error.message, null, 2),
+//     );
+
+//     return res.status(error.response?.status || 500).json({
+//       success: false,
+//       message: error.response?.data?.error?.message || error.message,
+//       error: error.response?.data?.error || null,
+//     });
+//   }
+// };

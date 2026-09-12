@@ -5,6 +5,7 @@ import {
   getAppointmentByIdService,
   updateAppointmentService,
 } from "../services/appointmentsService.js";
+import { sendTattooAppoinmentConfirmation } from "../services/WhatsappService.js";
 
 export const addAppointment = async (req, res) => {
   try {
@@ -32,9 +33,23 @@ export const addAppointment = async (req, res) => {
     const response = await addAppointmentService(payload, franchiesCode);
 
     if (response.success) {
+      await sendTattooAppoinmentConfirmation({
+        franchiesCode: franchiesCode,
+        name: name,
+        date: date,
+        time: time,
+        advance: advanceAmount,
+        customerPhone: contactNumber,
+      });
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-        [franchiesCode,username, "Appointments", "add", JSON.stringify(payload)],
+        [
+          franchiesCode,
+          username,
+          "Appointments",
+          "add",
+          JSON.stringify(payload),
+        ],
       );
 
       return res.status(200).json({ message: response.message });
@@ -52,9 +67,9 @@ export const getAllAppointments = async (req, res) => {
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);
 
-    const franchiesCode = req.user?.franchiesId
+    const franchiesCode = req.user?.franchiesId;
 
-    const response = await getAllAppointmentsService(franchiesCode,page, size);
+    const response = await getAllAppointmentsService(franchiesCode, page, size);
 
     if (!response.success)
       return res.status(500).json({ message: response.message });
@@ -92,7 +107,7 @@ export const editAppointment = async (req, res) => {
     const username = req.query.username || req.user?.username || "Unknown";
     const { name, date, time, contactNumber, advanceAmount, visitPlatform } =
       req.body;
- const franchiesCode = req.user.franchiesId;
+    const franchiesCode = req.user.franchiesId;
     if (!id) return res.status(400).json({ message: "id is required" });
     if (!name) return res.status(400).json({ message: "Name is required" });
 
@@ -110,7 +125,13 @@ export const editAppointment = async (req, res) => {
     if (response.success) {
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-        [franchiesCode,username, "Appointments", "edit", JSON.stringify(payload)],
+        [
+          franchiesCode,
+          username,
+          "Appointments",
+          "edit",
+          JSON.stringify(payload),
+        ],
       );
 
       return res.status(200).json({ message: response.message });
@@ -125,7 +146,7 @@ export const editAppointment = async (req, res) => {
 export const deleteAppoinment = async (req, res) => {
   try {
     const { id, username } = req.query;
- const franchiesCode = req.user.franchiesId;
+    const franchiesCode = req.user.franchiesId;
     if (!id || !username) {
       return res.status(400).json({
         message: "id & username are required",
@@ -141,7 +162,7 @@ export const deleteAppoinment = async (req, res) => {
 
     await database.query(
       `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-      [franchiesCode,username, "Appointments", "delete", payload],
+      [franchiesCode, username, "Appointments", "delete", payload],
     );
 
     await database.query(`DELETE FROM appointments WHERE id =?`, [id]);
