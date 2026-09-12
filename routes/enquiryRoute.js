@@ -4,6 +4,7 @@ import {
   addEnquiry,
   addOutEnquiry,
   getAllEnquiry,
+  getAllLandingPageEnquiry,
   getEnquiryById,
   updateEnquiry,
   updateEnquiryStatus,
@@ -17,3 +18,4 @@ enquiryRoute.get("/getAllEnquiry", token, getAllEnquiry);
 enquiryRoute.get("/getEnquiryById", token, getEnquiryById);
 enquiryRoute.put("/updateEnquiry", token, updateEnquiry);
 enquiryRoute.post("/addOutEnquiry", addOutEnquiry);
+enquiryRoute.get("/getAllLandingPageEnquiry",token,  getAllLandingPageEnquiry);
