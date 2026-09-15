@@ -16,7 +16,7 @@ export const createWhatsAppTemplate = async () => {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`;
 
     const data = {
-      name: "appointment_confirm_1991",
+      name: "birthdaywish_inkfly",
       language: "en_US",
 
       category: "UTILITY",
@@ -27,7 +27,7 @@ export const createWhatsAppTemplate = async () => {
           format: "IMAGE",
           example: {
             header_handle: [
-              "4::aW1hZ2UvanBlZw==:ARZSwo-12CnKS1VMkcD0kjf4popJ5i00ZjFkKy98n-UwNerN9iENGMkuX7JKVgEpCyoDLf9ZTsR7N1E9ARJhmhXHXaFcmLV8BdZ9sqA9GmJBFA:e:1789375250:4507499142871543:61594115907835:ARZhHdTjQ82cXNnnWH8",
+              "4::aW1hZ2UvanBlZw==:ARY4aI1N86OIrY2eMYGZwtrzu8rOT5JWUCvfPQCUkz0fmLdC3NQ4-M08HLefk0rg7GGsfsE0M4jpcBxxQNgIMEZYNXTvRdszfpPfBDczbGHHQw:e:1789820186:4507499142871543:61594115907835:ARazNSAV0sMOVm9o4ko",
             ],
           },
         },
@@ -36,32 +36,32 @@ export const createWhatsAppTemplate = async () => {
           type: "BODY",
           text: `Hello {{1}},
 
-  Your appointment is confirmed at 1991 Tattoo Studio.
+         🎉 Happy Birthday from InkFly Tattoo Studio! 🎂🖤
 
-      Tattoo Session Summary
+         Wishing you an amazing birthday filled with happiness, good vibes, and unforgettable moments. ✨
 
-      👤 Name: {{1}}
-      📅 Date: {{2}}
-      ⏰ Time: {{3}}
-      💳 Advance: {{4}}
+         🎁 Birthday Special Offer
 
-  📍 Studio Location: https://maps.app.goo.gl/68YjtnccZhTg1Scz6
-  📸 Instagram: https://www.instagram.com/1991tattoos
-  📞 Contact:  +91 98817 42686
+         As a birthday gift from InkFly Tattoo Studio, enjoy
+         🔥 50% OFF on your tattoo!
 
-  Thank you,
-  1991 Tattoo Studio`,
+         This special offer is exclusively for you and is valid for your birthday celebration.
+
+         📍 Studio Location: https://maps.app.goo.gl/B6VyvioZQy73UMrq7
+         📸 Instagram: https://www.instagram.com/inkflytattoopune
+         📞 Contact: +91 96070 09494
+
+         Thank you,
+         InkFly Tattoo Studio`,
 
           example: {
-            body_text: [
-              ["Prajot Surey", "12 September 2026", "4:00 PM", "₹5,000"],
-            ],
+            body_text: [["Prajot Surey"]],
           },
         },
 
         {
           type: "FOOTER",
-          text: "1991 Tattoo Studio",
+          text: "InkFly Tattoo Studio",
         },
 
         {
@@ -70,7 +70,7 @@ export const createWhatsAppTemplate = async () => {
             {
               type: "PHONE_NUMBER",
               text: "Call Us",
-              phone_number: "+9198817 42686",
+              phone_number: "+919607009494",
             },
           ],
         },
@@ -209,8 +209,6 @@ export const sendTattooAppoinmentConfirmation = async ({
   customerPhone,
 }) => {
   try {
-
-
     const phone = String(customerPhone).replace(/\D/g, "");
     const template =
       franchiesCode === 1
@@ -289,5 +287,84 @@ export const sendTattooAppoinmentConfirmation = async ({
       message: error.response?.data?.error?.message || error.message,
       error: error.response?.data,
     };
+  }
+};
+
+// Send bulk birthday notification
+export const sendBirthdayNotification = async (numbers) => {
+  try {
+    for (const a of numbers) {
+      const phone = String(a.num || "").replace(/\D/g, "");
+
+      if (!phone) {
+        console.log("Invalid phone number:", a.num);
+        continue;
+      }
+
+      const template =
+        a.franchiesCode === 1 ? "birthdaywish_1991" : "birthdaywish_inkfly";
+
+      const tattooImageUrl =
+        a.franchiesCode === 1
+          ? "https://landing.1991tattoo.com/assets/tattoo2-C4f0QS2g.jpeg"
+          : "https://landing.inkflytattoo.com/assets/imag1-DE-6_4RU.png";
+
+      const payload = {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+          name: template,
+          language: {
+            code: "en_US",
+          },
+          components: [
+            {
+              type: "header",
+              parameters: [
+                {
+                  type: "image",
+                  image: {
+                    link: tattooImageUrl,
+                  },
+                },
+              ],
+            },
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: String(a.name),
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      try {
+        const response = await axios.post(
+          `https://graph.facebook.com/v26.0/${PHONE_NUMBER_ID}/messages`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${ACCESS_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        console.log(`Birthday notification sent to ${phone}`);
+        console.log(response.data);
+      } catch (error) {
+        console.log(
+          `Failed to send birthday notification to ${phone}`,
+          error.response?.data || error.message,
+        );
+      }
+    }
+  } catch (error) {
+    console.log("Bulk birthday notification error:", error);
   }
 };

@@ -33,3 +33,21 @@ export const getBirthNotifi = async (req, res) => {
     });
   }
 };
+
+
+
+
+export const getTodayBirthdayCustomers = async () => {
+  const [rows] = await database.query(`
+    SELECT 
+      mobileno AS num,
+      name,
+      franchiesCode
+    FROM clients
+    WHERE DATE_FORMAT(dob, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d')
+  `);
+
+  console.log(rows)
+
+  return rows;
+};

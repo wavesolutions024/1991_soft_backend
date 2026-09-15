@@ -14,6 +14,9 @@ import { enquiryRoute } from "./routes/enquiryRoute.js";
 import { appointmentsRoute } from "./routes/appointmentsRoute.js";
 import { notifyRoute } from "./routes/notificationRoute.js";
 import { whatsappRoute } from "./routes/whatsaroute.js";
+import "./utils/CronJob.js"
+import { getTodayBirthdayCustomers } from "./controller/NotificationController.js";
+
 dotenv.config();
 
 
@@ -67,7 +70,8 @@ app.use("/", (req, res) => {
 try {
 
     await createConnection();
-    await createALLtabels()
+    await createALLtabels();
+    await getTodayBirthdayCustomers()
 
    const server = await http.createServer(app);
 
