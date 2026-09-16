@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { sendBirthdayNotification } from "../services/WhatsappService.js";
+import { getTodayBirthdayCustomers } from "../controller/NotificationController.js";
 
 cron.schedule(
   "0 10 * * *",
