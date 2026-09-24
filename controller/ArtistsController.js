@@ -2,11 +2,12 @@ import { artists } from "../class/Class.js";
 import { database } from "../db/database.js";
 import { addArtistService } from "../services/artistService.js";
 import bcrypt from "bcrypt";
+import { sendempregConfirmation } from "../services/WhatsappService.js";
 
 const passRound = 10;
 export const addArtist = async (req, res) => {
   try {
-    const { artistName, artistNumber, username, password,salary } = req.body;
+    const { artistName, artistNumber, username, password, salary } = req.body;
     const id = req.user.franchiesId;
 
     if (!artistName) {
@@ -65,12 +66,20 @@ export const addArtist = async (req, res) => {
       username,
       password,
       artistCode,
-      salary
+      salary,
     });
 
     const response = await addArtistService(model, id);
 
     if (response.success) {
+      await sendempregConfirmation({
+        franchiesCode: id,
+        employyname: artistName,
+        empId: artistCode,
+        role: "Artist",
+        salary: salary,
+        aphone: artistNumber,
+      });
       return res.status(200).json({
         message: "Artist add successfully",
       });
@@ -91,7 +100,7 @@ export const getAllArtists = async (req, res) => {
     const franchiesCode = req.user.franchiesId;
 
     const [response] = await database.query(
-      `SELECT id,artistName,artistNumber,username,role FROM tattooArtists WHERE franchiesCode = ?`,
+      `SELECT id,artistName,artistNumber,username,role, salary FROM tattooArtists WHERE franchiesCode = ?`,
       [franchiesCode],
     );
 
@@ -167,28 +176,37 @@ export const getArtistById = async (req, res) => {
 export const editArtist = async (req, res) => {
   try {
     const { id } = req.query;
-    const { artistName, artistNumber, username, password,salary } = req.body;
+    const { artistName, artistNumber, username, password, salary } = req.body;
 
     const [existUser] = await database.query(
-      `SELECT password FROM tattooArtists WHERE id = ?`,
+      `SELECT password,franchiesCode,artistCode FROM tattooArtists WHERE id = ?`,
       [id],
     );
 
     const exitpassword = existUser[0].password;
+    const fId = existUser[0].franchiesCode;
+    const artistCode = existUser[0].artistCode;
 
     if (password === "") {
       await database.query(
         `UPDATE tattooArtists SET  artistName = ?, artistNumber = ?,username = ?,password = ?,salary=? WHERE id = ?`,
-        [artistName, artistNumber, username, exitpassword, salary,id],
+        [artistName, artistNumber, username, exitpassword, salary, id],
       );
     } else {
       const hashPassword = await bcrypt.hash(password, passRound);
       await database.query(
         `UPDATE tattooArtists SET  artistName = ?, artistNumber=?,username=?,password=?,salary WHERE id = ?`,
-        [artistName, artistNumber, username, hashPassword,salary, id],
+        [artistName, artistNumber, username, hashPassword, salary, id],
       );
     }
-
+    await sendempregConfirmation({
+      franchiesCode: fId,
+      employyname: artistName,
+      empId: artistCode,
+      role: "Artist",
+      salary: salary,
+      aphone: artistNumber,
+    });
     return res.status(200).json({
       message: "update successfully",
     });

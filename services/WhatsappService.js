@@ -18,64 +18,63 @@ export const createWhatsAppTemplate = async () => {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`;
 
     const data = {
-      name: "birthdaywish_inkfly",
+      name: "artist_registration_1991_updated",
       language: "en_US",
 
       category: "UTILITY",
 
       components: [
-        {
-          type: "HEADER",
-          format: "IMAGE",
-          example: {
-            header_handle: [
-              "4::aW1hZ2UvanBlZw==:ARY4aI1N86OIrY2eMYGZwtrzu8rOT5JWUCvfPQCUkz0fmLdC3NQ4-M08HLefk0rg7GGsfsE0M4jpcBxxQNgIMEZYNXTvRdszfpPfBDczbGHHQw:e:1789820186:4507499142871543:61594115907835:ARazNSAV0sMOVm9o4ko",
-            ],
-          },
-        },
+        // {
+        //   type: "HEADER",
+        //   format: "IMAGE",
+        //   example: {
+        //     header_handle: [
+        //       "4::aW1hZ2UvanBlZw==:ARY4aI1N86OIrY2eMYGZwtrzu8rOT5JWUCvfPQCUkz0fmLdC3NQ4-M08HLefk0rg7GGsfsE0M4jpcBxxQNgIMEZYNXTvRdszfpPfBDczbGHHQw:e:1789820186:4507499142871543:61594115907835:ARazNSAV0sMOVm9o4ko",
+        //     ],
+        //   },
+        // },
 
         {
           type: "BODY",
           text: `Hello {{1}},
 
-         🎉 Happy Birthday from InkFly Tattoo Studio! 🎂🖤
+Your employee registration at 1991 Tattoo Studio has been completed successfully.
 
-         Wishing you an amazing birthday filled with happiness, good vibes, and unforgettable moments. ✨
+Employee Name: {{1}}
+Employee ID: {{2}}
+Position: {{3}}
+Salary: {{4}}
 
-         🎁 Birthday Special Offer
+Please keep your login credentials confidential.
 
-         As a birthday gift from InkFly Tattoo Studio, enjoy
-         🔥 50% OFF on your tattoo!
-
-         This special offer is exclusively for you and is valid for your birthday celebration.
-
-         📍 Studio Location: https://maps.app.goo.gl/B6VyvioZQy73UMrq7
-         📸 Instagram: https://www.instagram.com/inkflytattoopune
-         📞 Contact: +91 96070 09494
-
-         Thank you,
-         InkFly Tattoo Studio`,
+Thank you,
+1991 Tattoo Studio`,
 
           example: {
-            body_text: [["Prajot Surey"]],
-          },
+            body_text: [[
+              "Prajot Surey",
+              "INK001",
+              "Tattoo Artist",
+              "10000"
+            ]]
+          }
         },
-
         {
           type: "FOOTER",
-          text: "InkFly Tattoo Studio",
-        },
+          text: "1991 Tattoo Studio"
+        }
+   
 
-        {
-          type: "BUTTONS",
-          buttons: [
-            {
-              type: "PHONE_NUMBER",
-              text: "Call Us",
-              phone_number: "+919607009494",
-            },
-          ],
-        },
+        // {
+        //   type: "BUTTONS",
+        //   buttons: [
+        //     {
+        //       type: "PHONE_NUMBER",
+        //       text: "Call Us",
+        //       phone_number: "+919607009494",
+        //     },
+        //   ],
+        // },
       ],
     };
 
@@ -371,6 +370,97 @@ export const sendBirthdayNotification = async (numbers) => {
   }
 };
 
+// send employee reg message
+
+export const sendempregConfirmation = async ({
+  franchiesCode,
+  employyname,
+  empId,
+  role,
+  salary,
+  aphone
+}) => {
+  try {
+    // console.log("PHONE_NUMBER_ID:", PHONE_NUMBER_ID);
+    // console.log("CUSTOMER PHONE:", customerPhone);
+    // console.log("TEMPLATE:", "tattoo_session_confirmation_1991");
+    // console.log("LANGUAGE:", "en_US");
+
+    const phone = String(aphone).replace(/\D/g, "");
+
+    const template =
+      franchiesCode === 1
+        ? "artist_registration_1991_updated"
+        : "artist_registration_inkfly_test";
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: "template",
+      template: {
+        name: template,
+        language: {
+          code: "en_US",
+        },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              {
+                type: "text",
+                text: String(employyname),
+              },
+              {
+                type: "text",
+                text: String(empId),
+              },
+              {
+                type: "text",
+                text: String(role),
+              },
+              {
+                type: "text",
+                text: String(salary),
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    // console.log("WHATSAPP PAYLOAD:", JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(
+      `https://graph.facebook.com/v26.0/${PHONE_NUMBER_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    console.log("WhatsApp sent:", response.data);
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(
+      "WhatsApp Error:",
+      JSON.stringify(error.response?.data, null, 2),
+    );
+
+    return {
+      success: false,
+      message: error.response?.data?.error?.message || error.message,
+      error: error.response?.data,
+    };
+  }
+};
+
 // --------------------------------------------------
 // Check if date is recent
 // --------------------------------------------------
@@ -473,10 +563,6 @@ export const getAnalyticsFromMeta = async (date) => {
       WHATSAPP_TEMPLATES.includes(template.name),
     );
 
-
-
-  
-
     if (!selectedTemplates.length) {
       throw new Error("No matching WhatsApp templates found");
     }
@@ -501,8 +587,6 @@ export const getAnalyticsFromMeta = async (date) => {
       },
     });
 
-    
-
     return response.data;
   } catch (error) {
     console.error(
@@ -514,7 +598,7 @@ export const getAnalyticsFromMeta = async (date) => {
   }
 };
 
-export const getWhatsappAnyaltics = async (date) => { 
+export const getWhatsappAnyaltics = async (date) => {
   try {
     const recent = isRecentDate(date, 3);
     if (!recent) {
@@ -530,8 +614,6 @@ export const getWhatsappAnyaltics = async (date) => {
     }
 
     const metaData = await getAnalyticsFromMeta(date);
-
-  
 
     const formattedData = formatMetaAnalytics(metaData, date);
 
