@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import {
   createWhatsAppTemplate,
+  getWhatsappAnyaltics,
   sendTattooSessionConfirmation,
 } from "../services/WhatsappService.js";
 import axios from "axios";
@@ -135,13 +136,12 @@ export const uploadImageToMeta = async (req, res) => {
         headers: {
           Authorization: `Bearer ${ACCESS_TOKEN}`,
         },
-      }
+      },
     );
 
     const uploadSessionId = sessionResponse.data.id;
 
     console.log("UPLOAD SESSION:", uploadSessionId);
-
 
     // ==========================================
     // STEP 2: UPLOAD IMAGE TO SESSION
@@ -154,13 +154,12 @@ export const uploadImageToMeta = async (req, res) => {
         headers: {
           Authorization: `OAuth ${ACCESS_TOKEN}`,
           "Content-Type": imageFile.mimetype,
-          "file_offset": "0",
+          file_offset: "0",
         },
-      }
+      },
     );
 
     console.log("META HEADER HANDLE:", uploadResponse.data);
-
 
     // ==========================================
     // RESPONSE
@@ -171,11 +170,10 @@ export const uploadImageToMeta = async (req, res) => {
       session_id: uploadSessionId,
       header_handle: uploadResponse.data.h,
     });
-
   } catch (error) {
     console.log(
       "META TEMPLATE IMAGE UPLOAD ERROR:",
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
 
     return res.status(500).json({
@@ -283,7 +281,6 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-
 // send appoinment message
 // export const sendAppoinmentMessage = async (req, res) => {
 //   try {
@@ -329,3 +326,47 @@ export const sendMessage = async (req, res) => {
 //     });
 //   }
 // };
+
+const getTodayIST = () => {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+  }).format(new Date());
+};
+
+export const whatsappAnalyticsController = async (req, res) => {
+  try {
+    let { date } = req.query;
+
+    // Date not passed → today's date
+    if (!date) {
+      date = getTodayIST();
+    }
+
+    // Basic date validation
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!dateRegex.test(date)) {
+      return res.status(400).json({
+        success: false,
+        message: "Date must be YYYY-MM-DD",
+      });
+    }
+
+    const result = await getWhatsappAnyaltics(date);
+
+    return res.status(200).json({
+      success: true,
+      date,
+      source: result.source,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error("WhatsApp Analytics Controller:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch WhatsApp analytics",
+      error: error.message,
+    });
+  }
+};

@@ -29,6 +29,7 @@ export class artists {
     this.artistNumber = artist.artistNumber;
     this.username = artist.username;
     this.password = artist.password;
+    this.salary = artist.salary
   }
 }
 

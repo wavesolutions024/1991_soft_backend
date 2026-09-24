@@ -52,6 +52,7 @@ artistNumber VARCHAR(20) NOT NULL,
 username VARCHAR(255) NOT NULL,
 password VARCHAR(255) NOT NULL,
 role ENUM('Artist') DEFAULT 'Artist',
+salary INT DEFAULT 0,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
@@ -110,12 +111,37 @@ updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
 
+const whatsapp_daily_anyalstics = `CREATE TABLE IF NOT EXISTS whatsapp_daily_analytics (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    analytics_date DATE NOT NULL,
+
+    template_name VARCHAR(255) NOT NULL,
+
+    sent INT DEFAULT 0,
+    delivered INT DEFAULT 0,
+    read_count INT DEFAULT 0,
+    failed INT DEFAULT 0,
+
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_date_template (
+        analytics_date,
+        template_name
+    ),
+
+    INDEX idx_analytics_date (analytics_date),
+    INDEX idx_template_name (template_name)
+)`;
 
 
 const createTable = async (table, query) => {
   try {
     await database.query(query);
-
+     
     console.log(`${table} is created successfully`);
   } catch (error) {
     console.log(error);
@@ -131,4 +157,5 @@ export const createALLtabels = async () => {
   await createTable("logs", logs);
   await createTable("enquiry", enquiry);
   await createTable("appointments", appointments);
+  await createTable("whatsapp_daily_analytics", whatsapp_daily_anyalstics);
 };

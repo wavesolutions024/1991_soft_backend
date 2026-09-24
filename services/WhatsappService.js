@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 import axios from "axios";
+import { database } from "../db/database.js";
+import { WHATSAPP_TEMPLATES } from "../utils/WhatsappTemplate.js";
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION;
 
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -367,4 +369,197 @@ export const sendBirthdayNotification = async (numbers) => {
   } catch (error) {
     console.log("Bulk birthday notification error:", error);
   }
+};
+
+// --------------------------------------------------
+// Check if date is recent
+// --------------------------------------------------
+
+export const isRecentDate = (dateString, days = 3) => {
+  const requestedDate = new Date(`${dateString}T00:00:00`);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const difference = (today - requestedDate) / (1000 * 60 * 60 * 24);
+
+  return difference >= 0 && difference <= days;
+};
+
+export const whatsappAnyalticsdb = async (date) => {
+  try {
+    const [rows] = await database.query(
+      `
+    SELECT
+      analytics_date,
+      template_name,
+      sent,
+      delivered,
+      read_count,
+      failed,
+      updated_at
+    FROM whatsapp_daily_analytics
+    WHERE analytics_date = ?
+    ORDER BY template_name
+    `,
+      [date],
+    );
+
+    return rows;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const saveUpdateData = async (data) => {
+  try {
+    for (const item of data) {
+      await database.query(
+        `
+      INSERT INTO whatsapp_daily_analytics
+      (
+        analytics_date,
+        template_name,
+        sent,
+        delivered,
+        read_count,
+        failed
+      )
+      VALUES (?, ?, ?, ?, ?, ?)
+
+      ON DUPLICATE KEY UPDATE
+        sent = VALUES(sent),
+        delivered = VALUES(delivered),
+        read_count = VALUES(read_count),
+        failed = VALUES(failed),
+        updated_at = CURRENT_TIMESTAMP
+      `,
+        [
+          item.date,
+          item.template_name,
+          item.sent || 0,
+          item.delivered || 0,
+          item.read || 0,
+          item.failed || 0,
+        ],
+      );
+    }
+
+    return true;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const getAnalyticsFromMeta = async (date) => {
+  try {
+    const templateResponse = await axios.get(
+      `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`,
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+        params: {
+          fields: "id,name,status",
+          limit: 100,
+        },
+      },
+    );
+
+    const templates = templateResponse.data?.data || [];
+
+    // 2. Find IDs using template names
+    const selectedTemplates = templates.filter((template) =>
+      WHATSAPP_TEMPLATES.includes(template.name),
+    );
+
+
+
+  
+
+    if (!selectedTemplates.length) {
+      throw new Error("No matching WhatsApp templates found");
+    }
+
+    // 3. Automatically get IDs
+    const templateIds = selectedTemplates.map((template) => template.id);
+    // Meta analytics endpoint इथे verified endpoint प्रमाणे ठेवायचा आहे
+    const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/template_analytics`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+      },
+      params: {
+        start: date,
+        end: date,
+        granularity: "DAILY",
+        template_ids: templateIds.join(","),
+        metric_types: "SENT,DELIVERED,READ",
+        use_waba_timezone: true,
+        product_type: "CLOUD_API",
+      },
+    });
+
+    
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Meta Analytics Error:",
+      error.response?.data || error.message,
+    );
+
+    throw error;
+  }
+};
+
+export const getWhatsappAnyaltics = async (date) => { 
+  try {
+    const recent = isRecentDate(date, 3);
+    if (!recent) {
+      const dbData = await whatsappAnyalticsdb(date);
+
+      console.log(dbData, "dbData");
+
+      return {
+        source: "database",
+        date,
+        data: dbData,
+      };
+    }
+
+    const metaData = await getAnalyticsFromMeta(date);
+
+  
+
+    const formattedData = formatMetaAnalytics(metaData, date);
+
+    // Save latest snapshot
+    await saveAnalyticsToDB(formattedData);
+
+    return {
+      source: "meta",
+      date,
+      data: formattedData,
+    };
+  } catch (error) {
+    return error;
+  }
+};
+
+const formatMetaAnalytics = (metaData, date) => {
+  // Meta च्या actual response structure नुसार
+  // हा भाग बदलायचा आहे.
+
+  return WHATSAPP_TEMPLATES.map((template) => {
+    return {
+      date,
+      template_name: template,
+      sent: 0,
+      delivered: 0,
+      read: 0,
+      failed: 0,
+    };
+  });
 };

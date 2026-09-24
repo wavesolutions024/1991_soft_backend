@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 const passRound = 10;
 export const addArtist = async (req, res) => {
   try {
-    const { artistName, artistNumber, username, password } = req.body;
+    const { artistName, artistNumber, username, password,salary } = req.body;
     const id = req.user.franchiesId;
 
     if (!artistName) {
@@ -65,6 +65,7 @@ export const addArtist = async (req, res) => {
       username,
       password,
       artistCode,
+      salary
     });
 
     const response = await addArtistService(model, id);
@@ -166,7 +167,7 @@ export const getArtistById = async (req, res) => {
 export const editArtist = async (req, res) => {
   try {
     const { id } = req.query;
-    const { artistName, artistNumber, username, password } = req.body;
+    const { artistName, artistNumber, username, password,salary } = req.body;
 
     const [existUser] = await database.query(
       `SELECT password FROM tattooArtists WHERE id = ?`,
@@ -177,14 +178,14 @@ export const editArtist = async (req, res) => {
 
     if (password === "") {
       await database.query(
-        `UPDATE tattooArtists SET  artistName = ?, artistNumber = ?,username = ?,password = ? WHERE id = ?`,
-        [artistName, artistNumber, username, exitpassword, id],
+        `UPDATE tattooArtists SET  artistName = ?, artistNumber = ?,username = ?,password = ?,salary=? WHERE id = ?`,
+        [artistName, artistNumber, username, exitpassword, salary,id],
       );
     } else {
       const hashPassword = await bcrypt.hash(password, passRound);
       await database.query(
-        `UPDATE tattooArtists SET  artistName = ?, artistNumber=?,username=?,password=? WHERE id = ?`,
-        [artistName, artistNumber, username, hashPassword, id],
+        `UPDATE tattooArtists SET  artistName = ?, artistNumber=?,username=?,password=?,salary WHERE id = ?`,
+        [artistName, artistNumber, username, hashPassword,salary, id],
       );
     }
 
