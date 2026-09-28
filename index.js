@@ -17,6 +17,9 @@ import { whatsappRoute } from "./routes/whatsaroute.js";
 import "./utils/CronJob.js"
 import { getTodayBirthdayCustomers } from "./controller/NotificationController.js";
 
+import { finDashroute } from "./routes/finDashboard.js";
+import { expenseRoute } from "./routes/ExpenseRoute.js";
+
 dotenv.config();
 
 
@@ -63,6 +66,8 @@ app.use("/api/enquiry", enquiryRoute);
 app.use("/api/appointments", appointmentsRoute);
 app.use("/api/notification", notifyRoute);
 app.use("/api/whatsapp", whatsappRoute);
+app.use("/api/finDash",finDashroute);
+app.use("/api/expense", expenseRoute)
 
 app.use("/", (req, res) => {
   res.send("Hello 1991 tattoo studio");

@@ -138,6 +138,20 @@ const whatsapp_daily_anyalstics = `CREATE TABLE IF NOT EXISTS whatsapp_daily_ana
 )`;
 
 
+const expenses = `CREATE TABLE IF NOT EXISTS expenses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    franchiesCode INT NOT NULL,
+    expenseType VARCHAR(255) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    paymentMethod ENUM('Cash','Card','UPI') NOT NULL,
+    recietImage VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
+)`;
+
+
 const createTable = async (table, query) => {
   try {
     await database.query(query);
@@ -158,4 +172,6 @@ export const createALLtabels = async () => {
   await createTable("enquiry", enquiry);
   await createTable("appointments", appointments);
   await createTable("whatsapp_daily_analytics", whatsapp_daily_anyalstics);
+  await createTable("expenses", expenses);
+
 };
