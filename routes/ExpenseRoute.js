@@ -1,5 +1,5 @@
 import express from "express";  
-import { addExpense } from "../controller/Expense.js";
+import { addExpense, deleteExpense, getAllExpense } from "../controller/Expense.js";
 import { token, verifyRole } from "../utils/Token.js";
 import { receiptUpload } from "../utils/multer.js";
 
@@ -13,3 +13,7 @@ expenseRoute.post(
   verifyRole,
   addExpense
 );
+
+expenseRoute.get("/getAllExpense", token,verifyRole,getAllExpense);
+
+expenseRoute.delete("/deleteExpense", token,verifyRole,deleteExpense)
