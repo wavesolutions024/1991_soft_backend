@@ -195,7 +195,7 @@ export const editArtist = async (req, res) => {
     } else {
       const hashPassword = await bcrypt.hash(password, passRound);
       await database.query(
-        `UPDATE tattooArtists SET  artistName = ?, artistNumber=?,username=?,password=?,salary WHERE id = ?`,
+        `UPDATE tattooArtists SET  artistName = ?, artistNumber=?,username=?,password=?,salary=? WHERE id = ?`,
         [artistName, artistNumber, username, hashPassword, salary, id],
       );
     }
@@ -211,6 +211,7 @@ export const editArtist = async (req, res) => {
       message: "update successfully",
     });
   } catch (error) {
+  
     return res.status(500).json({
       message: error.message,
     });
