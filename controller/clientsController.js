@@ -46,6 +46,33 @@ export const addClinets = async (req, res) => {
       userId,
     );
 
+    const [apResponse] = await database.query(
+      `SELECT * FROM appointments WHERE contactNumber = ? AND status = 'pending'`,
+      [payload.mobileno],
+    );
+
+    if (apResponse.length > 0) {
+      await database.query(
+        `UPDATE appointments SET status = 'completed' WHERE contactNumber = ?`,
+        [payload.mobileno],
+      );
+    }
+
+    const [enqresponse] = await database.query(
+      `SELECT * FROM enquiry WHERE mobileno = ? AND status = 'pending'`,
+      [payload.mobileno],
+    );
+
+    if (enqresponse.length > 0) {
+      await database.query(
+        `UPDATE enquiry SET status = 'completed' WHERE mobileno = ?`,
+        [payload.mobileno],
+      );
+    }
+
+
+ 
+
     const pdata = JSON.stringify(payload);
 
     if (response.success) {
