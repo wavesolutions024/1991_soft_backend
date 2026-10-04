@@ -41,24 +41,56 @@ export const addArtist = async (req, res) => {
 
     // generate artistCode like emp199101, emp199102 ...
     // prefix is kept as 'emp1991' to match requested format
-    const prefix = `emp1991`;
+  const prefix = "emp1991";
 
-    // find latest artistCode for this franchise with the same prefix
-    const [latestRows] = await database.query(
-      `SELECT artistCode FROM tattooArtists WHERE artistCode LIKE ? AND franchiesCode = ? ORDER BY id DESC LIMIT 1`,
-      [`${prefix}%`, id],
-    );
+const [codeRows] = await database.query(
+  `
+  SELECT artistCode
+  FROM tattooArtists
+  WHERE artistCode LIKE ?
+    AND franchiesCode = ?
+  `,
+  [`${prefix}%`, id]
+);
 
-    let nextNumber = 1;
-    if (latestRows.length > 0) {
-      const latestCode = latestRows[0].artistCode || "";
-      const suffixPart = latestCode.slice(prefix.length); // everything after "emp1991"
-      const lastNum = parseInt(suffixPart, 10);
-      if (!isNaN(lastNum)) nextNumber = lastNum + 1;
-    }
+let nextNumber = 1;
 
-    const suffix = String(nextNumber).padStart(2, "0");
-    const artistCode = `${prefix}${suffix}`;
+for (const row of codeRows) {
+  const code = row.artistCode;
+
+  if (!code || !code.startsWith(prefix)) continue;
+
+  const numberPart = code.slice(prefix.length);
+  const number = parseInt(numberPart, 10);
+
+  if (!isNaN(number) && number >= nextNumber) {
+    nextNumber = number + 1;
+  }
+}
+
+let artistCode;
+
+while (true) {
+  const suffix = String(nextNumber).padStart(2, "0");
+  const generatedCode = `${prefix}${suffix}`;
+
+  const [existingCode] = await database.query(
+    `
+    SELECT id
+    FROM tattooArtists
+    WHERE artistCode = ?
+    LIMIT 1
+    `,
+    [generatedCode]
+  );
+
+  if (existingCode.length === 0) {
+    artistCode = generatedCode;
+    break;
+  }
+
+  nextNumber++;
+}
 
     const model = new artists({
       artistName,
