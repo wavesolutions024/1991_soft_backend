@@ -160,7 +160,13 @@ export const getUserDataViaToken = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      domain: ".1991tattoos.com",
+      path: "/",
+    });
 
 
     return res.status(200).json({
