@@ -9,15 +9,15 @@ export const addEnquiry = async (req, res) => {
   try {
     const {
       name,
-      email,
       mobileNo,
-      gender,
       service,
-      tattooStyle,
-      tattooDescription,
       enquiryType,
       budget,
+      message,
+      FOLLOW_UP_1,
+      FOLLOW_UP_2_DATE,
     } = req.body;
+
     const { username } = req.query;
 
     const franchiesCode = req.user.franchiesId;
@@ -30,17 +30,16 @@ export const addEnquiry = async (req, res) => {
       return res.status(400).json({ message: "Mobile number is required" });
     }
 
-    const payload = new enquiry({
+    const payload = {
       name,
-      email,
       mobileNo,
-      gender,
       service,
-      tattooStyle,
-      tattooDescription,
       enquiryType,
       budget,
-    });
+      message,
+      FOLLOW_UP_1,
+      FOLLOW_UP_2_DATE,
+    };
 
     const response = await addEnquiryService(payload, franchiesCode);
 
@@ -48,7 +47,7 @@ export const addEnquiry = async (req, res) => {
       const payloadString = JSON.stringify(payload);
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-        [franchiesCode,username, "Enquiry", "add", payloadString],
+        [franchiesCode, username, "Enquiry", "add", payloadString],
       );
 
       return res.status(200).json({ message: response.message });
@@ -116,7 +115,8 @@ export const updateEnquiryStatus = async (req, res) => {
   try {
     const { id } = req.query;
     const { status } = req.body;
-
+    const franchiesCode = req.user.franchiesId;
+    const { username } = req.query;
     if (!id) {
       return res.status(400).json({ message: "Enquiry id is required" });
     }
@@ -144,13 +144,8 @@ export const updateEnquiryStatus = async (req, res) => {
     if (response.success) {
       const payloadString = JSON.stringify({ id, status });
       await database.query(
-        `INSERT INTO logs (user,service,action,tableNames) VALUES (?,?,?,?)`,
-        [
-          req.user.username || "Unknown",
-          "Enquiry",
-          "update status",
-          payloadString,
-        ],
+        `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
+        [franchiesCode, username, "Enquiry", "update status", payloadString],
       );
 
       return res.status(200).json({ message: response.message });
@@ -170,16 +165,16 @@ export const updateEnquiry = async (req, res) => {
     const { id, username } = req.query;
     const {
       name,
-      email,
       mobileNo,
-      gender,
-      tattooStyle,
-      tattooDescription,
+      service,
       enquiryType,
       budget,
+      message,
+      FOLLOW_UP_1,
+      FOLLOW_UP_2_DATE,
+      FOLLOW_UP_2,
     } = req.body;
-        const franchiesCode = req.user.franchiesId;
-
+    const franchiesCode = req.user.franchiesId;
 
     if (!name) {
       return res.status(400).json({
@@ -194,41 +189,47 @@ export const updateEnquiry = async (req, res) => {
     }
 
     await database.query(
-      `UPDATE enquiry SET name= ? , email = ?, mobileNo = ?, gender = ?, tattooStyle=?,tattooDescription=?,enquiryType=?,budget=? WHERE id = ?`,
+      `UPDATE enquiry SET name= ? ,  mobileNo = ?,serviceType =?, enquiryType=?,budget=? ,message = ?,FOLLOW_UP_1=?, FOLLOW_UP_2_DATE=?, FOLLOW_UP_2=?  WHERE id = ?`,
       [
         name,
-        email,
         mobileNo,
-        gender,
-        tattooStyle,
-        tattooDescription,
+        service,
         enquiryType,
         budget,
+        message,
+        FOLLOW_UP_1,
+        FOLLOW_UP_2_DATE,
+        FOLLOW_UP_2,
         id,
       ],
     );
 
     const payload = {
       name,
-      email,
       mobileNo,
-      gender,
-      tattooStyle,
-      tattooDescription,
+      service,
       enquiryType,
       budget,
+      message,
+      FOLLOW_UP_1,
+      FOLLOW_UP_2_DATE,
+      FOLLOW_UP_2,
     };
 
     const payloadString = JSON.stringify(payload);
 
     await database.query(
       `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-      [franchiesCode,username, "Enquiry", "edit", payloadString],
+      [franchiesCode, username, "Enquiry", "edit", payloadString],
     );
     return res.status(200).json({
       message: "update successfully",
     });
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 
 export const getAllEnquiry = async (req, res) => {
@@ -297,7 +298,6 @@ export const getEnquiryById = async (req, res) => {
 
 export const getAllLandingPageEnquiry = async (req, res) => {
   try {
-    
     const franchiesCode = req.user.franchiesId;
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const size = Math.max(parseInt(req.query.size, 10) || 10, 1);

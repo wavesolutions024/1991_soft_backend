@@ -29,7 +29,8 @@ export class artists {
     this.artistNumber = artist.artistNumber;
     this.username = artist.username;
     this.password = artist.password;
-    this.salary = artist.salary
+    this.salary = artist.salary;
+    this.role = artist.role
   }
 }
 
@@ -45,14 +46,14 @@ export class consent {
 }
 export class enquiry {
   constructor(enquiry) {
-    ((this.name = enquiry.name),
-      (this.email = enquiry.email),
-      (this.mobileNo = enquiry.mobileNo),
-      (this.gender = enquiry.gender),
-      (this.service = enquiry.service),
-      (this.tattooStyle = enquiry.tattooStyle),
-      (this.tattooDescription = enquiry.tattooDescription),
-      (this.enquiryType = enquiry.enquiryType),
-      (this.budget = enquiry.budget));
+    this.name = enquiry.name;
+      this.mobileNo = enquiry.mobileNo;
+      this.service = enquiry.service;
+      this.enquiryType = enquiry.enquiryType;
+      this.budget = enquiry.budget;
+      this.message = enquiry.message;
+      this.FOLLOW_UP_1 = enquiry.FOLLOW_UP_1;
+      this.FOLLOW_UP_2_DATE = enquiry.FOLLOW_UP_2_DATE;
+      this.FOLLOW_UP_2 = enquiry.FOLLOW_UP_2
   }
 }

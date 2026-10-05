@@ -7,7 +7,7 @@ import { sendempregConfirmation } from "../services/WhatsappService.js";
 const passRound = 10;
 export const addArtist = async (req, res) => {
   try {
-    const { artistName, artistNumber, username, password, salary } = req.body;
+    const { artistName, artistNumber, username, password, salary ,role} = req.body;
     const id = req.user.franchiesId;
 
     if (!artistName) {
@@ -99,6 +99,7 @@ while (true) {
       password,
       artistCode,
       salary,
+      role
     });
 
     const response = await addArtistService(model, id);
@@ -108,7 +109,7 @@ while (true) {
         franchiesCode: id,
         employyname: artistName,
         empId: artistCode,
-        role: "Artist",
+        role: role,
         salary: salary,
         aphone: artistNumber,
       });

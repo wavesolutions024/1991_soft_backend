@@ -5,7 +5,7 @@ const passLength = 10
 export const addArtistService = async (payload, franchies_code) => {
   try {
     const hashPassword =  await bcrypt.hash(payload.password,passLength)
-    const query = `INSERT INTO tattooArtists (franchiesCode,artistCode,artistName,artistNumber,username,password,salary) VALUES (?,?,?,?,?,?,?)`;
+    const query = `INSERT INTO tattooArtists (franchiesCode,artistCode,artistName,artistNumber,username,password,salary,role) VALUES (?,?,?,?,?,?,?,?)`;
     const values = [
       franchies_code,
       payload.artistCode,
@@ -13,7 +13,8 @@ export const addArtistService = async (payload, franchies_code) => {
       payload.artistNumber,
       payload.username,
       hashPassword,
-      payload.salary
+      payload.salary,
+      payload.role
     ];
 
     const [response] = await database.query(query, values);

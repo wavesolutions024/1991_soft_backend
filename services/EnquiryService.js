@@ -2,22 +2,21 @@ import { database } from "../db/database.js";
 
 export const addEnquiryService = async (payload, franchiesCode) => {
   try {
-    const query = `INSERT INTO enquiry (franchiesCode,name,email,mobileNo,gender,
-    serviceType,
-        tattooStyle,tattooDescription,enquiryType,budget) 
-        VALUES (?,?,?,?,?,?,?,?,?,?)`;
+    const query = `INSERT INTO enquiry (franchiesCode,name,mobileNo,
+    serviceType
+        ,enquiryType,budget,message,FOLLOW_UP_1,FOLLOW_UP_2_DATE) 
+        VALUES (?,?,?,?,?,?,?,?,?)`;
 
     const values = [
       franchiesCode,
       payload.name,
-      payload.email,
       payload.mobileNo,
-      payload.gender,
       payload.service,
-      payload.tattooStyle,
-      payload.tattooDescription,
       payload.enquiryType,
       payload.budget,
+      payload.message,
+      payload.FOLLOW_UP_1,
+      payload.FOLLOW_UP_2_DATE
     ];
 
     await database.query(query, values);

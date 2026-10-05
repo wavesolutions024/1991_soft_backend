@@ -51,7 +51,7 @@ artistName VARCHAR(255) NOT NULL,
 artistNumber VARCHAR(20) NOT NULL,
 username VARCHAR(255) NOT NULL,
 password VARCHAR(255) NOT NULL,
-role ENUM('Artist') DEFAULT 'Artist',
+role ENUM('Artist','Sales') DEFAULT 'Artist',
 salary INT DEFAULT 0,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -83,15 +83,17 @@ const enquiry = `CREATE TABLE IF NOT EXISTS enquiry (
 id INT AUTO_INCREMENT PRIMARY KEY,
 franchiesCode INT NOT NULL,
 name VARCHAR(255) NOT NULL,
-email VARCHAR(255),
 mobileNo VARCHAR(20) NOT NULL,
-gender VARCHAR(20),
 serviceType VARCHAR(100),
-tattooStyle VARCHAR(100),
-tattooDescription TEXT,
 enquiryType ENUM('website','landing page', 'Walk in','Google','Instagram') DEFAULT 'Walk in',
 budget DECIMAL(10,2) DEFAULT 0.00,
 status ENUM('pending','contacted','booked','completed','cancelled') DEFAULT 'pending',
+message TEXT,
+FOLLOW_UP_1 TEXT,
+FOLLOW_UP_2_DATE DATE,
+FOLLOW_UP_2 TEXT,
+FOLLOW_UP_3_DATE DATE,
+FOLLOW_UP_3 TEXT,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -156,6 +158,7 @@ const expenses = `CREATE TABLE IF NOT EXISTS expenses (
 const createTable = async (table, query) => {
   try {
     await database.query(query);
+
      
     console.log(`${table} is created successfully`);
   } catch (error) {
