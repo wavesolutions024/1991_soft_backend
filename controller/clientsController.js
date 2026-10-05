@@ -309,6 +309,30 @@ export const editClient = async (req, res) => {
         size: payload?.inch,
         payment: payload?.price,
       });
+
+      const [apResponse] = await database.query(
+      `SELECT * FROM appointments WHERE contactNumber = ? AND status = 'pending'`,
+      [payload.mobileno],
+    );
+
+    if (apResponse.length > 0) {
+      await database.query(
+        `UPDATE appointments SET status = 'completed' WHERE contactNumber = ?`,
+        [payload.mobileno],
+      );
+    }
+
+    const [enqresponse] = await database.query(
+      `SELECT * FROM enquiry WHERE mobileno = ? AND status = 'pending'`,
+      [payload.mobileno],
+    );
+
+    if (enqresponse.length > 0) {
+      await database.query(
+        `UPDATE enquiry SET status = 'completed' WHERE mobileno = ?`,
+        [payload.mobileno],
+      );
+    }
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
         [franchiesCode, payload.username, "Clients", "edit", pdata],
