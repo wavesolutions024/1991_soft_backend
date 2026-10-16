@@ -150,13 +150,28 @@ export const dashboardCtrlStats = async (req, res) => {
     // RECENT 5 CLIENTS
     // ========================
 
-    const [recentClients] = await database.query(`SELECT 
+    const [recentClients] = await database.query(
+      `SELECT 
       c.id,c.created_at,c.name,
       c.franchiesCode,c.clientType,td.price,
       c.paymentType,c.status,td.clientId FROM 
       clients AS c LEFT JOIN tattoodetails AS td ON c.id = td.clientId 
-      WHERE c.franchiesCode = ? ORDER BY c.created_at DESC LIMIT 5`, 
-      [franchiesCode]);
+      WHERE c.franchiesCode = ? ORDER BY c.created_at DESC LIMIT 5`,
+      [franchiesCode],
+    );
+
+    const query = `
+      SELECT
+        COALESCE(NULLIF(clientType, ''), 'Unspecified') AS clientType,
+        COUNT(*) AS count
+      FROM clients
+      WHERE MONTH(created_at) = ?
+        AND YEAR(created_at) = ? AND franchiesCode = ?
+      GROUP BY COALESCE(NULLIF(clientType, ''), 'Unspecified')
+      ORDER BY count DESC
+    `;
+
+    const [rows] = await database.query(query, [month, year, franchiesCode]);
 
     return res.status(200).json({
       success: true,
@@ -167,8 +182,9 @@ export const dashboardCtrlStats = async (req, res) => {
         revenue: Number(item.revenue),
       })),
 
+      clientype: rows,
       paymentMethods: paymentMethodResponse,
-      recentClients:recentClients
+      recentClients: recentClients,
     });
   } catch (error) {
     console.error("dashboardCtrlStats error:", error);
@@ -179,3 +195,4 @@ export const dashboardCtrlStats = async (req, res) => {
     });
   }
 };
+

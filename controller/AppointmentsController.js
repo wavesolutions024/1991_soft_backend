@@ -130,7 +130,7 @@ export const editAppointment = async (req, res) => {
         time: time,
         advance: advanceAmount,
         customerPhone: contactNumber,
-      })
+      });
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
         [
@@ -182,5 +182,36 @@ export const deleteAppoinment = async (req, res) => {
     return res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+// handle status
+
+export const statusAppoinment = async (req, res) => {
+  try {
+    const { id, status } = req.query;
+
+    // const username = req.query.username || req.user?.username || "Unknown";
+
+    const franchiesCode = req.user?.franchiesId;
+
+    const [response] = await database.query(
+      `UPDATE appointments SET status = ? WHERE id = ? AND franchiesCode = ?`,
+      [status, id, franchiesCode],
+    );
+
+    if(response.affectedRows > 0){
+      return res.status(200).json({
+        message:"success"
+      });
+
+
+    }
+
+
+  } catch (error) {
+      return res.status(500).json({
+        message:error.message
+      });
   }
 };
