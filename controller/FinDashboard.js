@@ -1,5 +1,5 @@
 import { database } from "../db/database.js";
-
+// import { Parser } from "json2csv";
 export const dashboardCtrlStats = async (req, res) => {
   try {
     const franchiesCode = req.user.franchiesId;
@@ -196,3 +196,200 @@ export const dashboardCtrlStats = async (req, res) => {
   }
 };
 
+
+
+export const expordata = async (req, res) => {
+  try {
+    const franchiesCode = req.user.franchiesId;
+    const { month, year } = req.query;
+
+    // Validate month and year
+    const selectedMonth = month ? Number(month) : null;
+    const selectedYear = year ? Number(year) : null;
+
+    if (
+      (month && (!Number.isInteger(selectedMonth) ||
+        selectedMonth < 1 || selectedMonth > 12)) ||
+      (year && (!Number.isInteger(selectedYear) ||
+        selectedYear < 2000 || selectedYear > 9999))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid month or year",
+      });
+    }
+
+    // Dynamic date filter
+    let dateCondition = "";
+    const params = [franchiesCode];
+
+    if (selectedYear) {
+      dateCondition += " AND YEAR(c.created_at) = ?";
+      params.push(selectedYear);
+    }
+
+    if (selectedMonth) {
+      dateCondition += " AND MONTH(c.created_at) = ?";
+      params.push(selectedMonth);
+    }
+
+    // Normalize client source
+    const sourceSQL = `
+      CASE
+        WHEN LOWER(TRIM(c.clientType)) LIKE '%Instragram%'
+          THEN 'Instragram'
+        WHEN LOWER(TRIM(c.clientType)) LIKE '%google%'
+          THEN 'Google'
+        WHEN LOWER(TRIM(c.clientType)) LIKE '%walk%'
+          THEN 'Walk-in'
+        ELSE 'Other'
+      END
+    `;
+
+    // 1. Summary counts and amounts
+    const [summaryRows] = await database.execute(
+      `
+      SELECT
+        COUNT(DISTINCT c.id) AS totalClients,
+
+        COUNT(DISTINCT CASE
+          WHEN ${sourceSQL} = 'Instragram' THEN c.id
+        END) AS instagramCount,
+
+        COUNT(DISTINCT CASE
+          WHEN ${sourceSQL} = 'Google' THEN c.id
+        END) AS googleCount,
+
+        COUNT(DISTINCT CASE
+          WHEN ${sourceSQL} = 'Walk-in' THEN c.id
+        END) AS walkinCount,
+
+        COALESCE(SUM(
+          CASE WHEN ${sourceSQL} = 'Instragram'
+          THEN CAST(td.price AS DECIMAL(12,2)) ELSE 0 END
+        ), 0) AS instagramAmount,
+
+        COALESCE(SUM(
+          CASE WHEN ${sourceSQL} = 'Google'
+          THEN CAST(td.price AS DECIMAL(12,2)) ELSE 0 END
+        ), 0) AS googleAmount,
+
+        COALESCE(SUM(
+          CASE WHEN ${sourceSQL} = 'Walk-in'
+          THEN CAST(td.price AS DECIMAL(12,2)) ELSE 0 END
+        ), 0) AS walkinAmount,
+
+        COALESCE(SUM(
+          CAST(td.price AS DECIMAL(12,2))
+        ), 0) AS totalAmount
+
+      FROM clients c
+      LEFT JOIN tattoodetails td ON td.clientId = c.id
+      WHERE c.franchiesCode = ?
+      ${dateCondition}
+      `,
+      params
+    );
+
+    const summary = summaryRows[0];
+
+    // 2. Detailed client and tattoo data
+    const [clientsData] = await database.execute(
+      `
+      SELECT
+        c.id AS Client_ID,
+        c.a_id AS Client_Code,
+        c.name AS Client_Name,
+        c.mobileno AS Mobile,
+        c.email AS Email,
+        c.gender AS Gender,
+        c.tattooArtist AS Tattoo_Artist,
+        c.clientType AS Client_Source,
+        c.referallName AS Referral_Name,
+        c.paymentType AS Payment_Type,
+        c.address AS Address,
+        c.dob AS Date_of_Birth,
+        c.status AS Status,
+        c.semiVIP AS Semi_VIP,
+        c.VIP AS VIP,
+        td.tattoodetails AS Tattoo_Details,
+        td.inch AS Inch,
+        td.price AS Price,
+        td.tattooImage AS Tattoo_Image,
+        c.created_at AS Client_Created_Date,
+        td.created_at AS Tattoo_Created_Date
+
+      FROM clients c
+      LEFT JOIN tattoodetails td ON td.clientId = c.id
+      WHERE c.franchiesCode = ?
+      ${dateCondition}
+      ORDER BY c.created_at DESC, c.id DESC
+      `,
+      params
+    );
+
+    // CSV escaping: handles commas, quotes and newlines
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return "";
+
+      const text = String(value);
+      return `"${text.replace(/"/g, '""')}"`;
+    };
+
+    const csvRows = [];
+
+    // TOP SUMMARY
+    csvRows.push(["REPORT SUMMARY"]);
+    csvRows.push(["Total Clients", summary.totalClients]);
+    csvRows.push(["Instagram Clients", summary.instagramCount]);
+    csvRows.push(["Google Clients", summary.googleCount]);
+    csvRows.push(["Walk-in Clients", summary.walkinCount]);
+    csvRows.push(["Total Amount", summary.totalAmount]);
+    csvRows.push(["Instagram Amount", summary.instagramAmount]);
+    csvRows.push(["Google Amount", summary.googleAmount]);
+    csvRows.push(["Walk-in Amount", summary.walkinAmount]);
+
+    // Blank lines between summary and detailed table
+    csvRows.push([]);
+    csvRows.push([]);
+    csvRows.push(["CLIENT DETAILS"]);
+
+    if (clientsData.length > 0) {
+      const headers = Object.keys(clientsData[0]);
+      csvRows.push(headers);
+
+      clientsData.forEach((client) => {
+        csvRows.push(headers.map((header) => client[header]));
+      });
+    } else {
+      csvRows.push(["No client records found"]);
+    }
+
+    const csv = csvRows
+      .map((row) => row.map(escapeCSV).join(","))
+      .join("\r\n");
+
+    // UTF-8 BOM helps Excel display the CSV correctly
+    const csvWithBOM = "\uFEFF" + csv;
+
+    const filename = `clients_${selectedYear || "all-years"}_${
+      selectedMonth || "all-months"
+    }.csv`;
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${filename}"`
+    );
+
+    return res.status(200).send(csvWithBOM);
+
+  } catch (error) {
+    console.error("Export CSV error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to export client data",
+    });
+  }
+};
