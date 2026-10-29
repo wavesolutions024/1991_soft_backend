@@ -10,6 +10,7 @@ import {
   exportAllClients,
   exportClientExcel,
 } from "../controller/clientsController.js";
+import { importBulkData } from "../controller/BulkCustomer.js";
 import { upload } from "../utils/multer.js";
 
 export const clientRoute = express.Router();
@@ -34,3 +35,10 @@ clientRoute.delete("/deleteClient",token,verifyRole, deleteClient);
 clientRoute.get("/getAllClientsDropdown",token, getAllClientsDropdown)
 clientRoute.get("/exportallclients", token, exportAllClients)
 clientRoute.get("/exportClientExcel", token, exportClientExcel)
+clientRoute.post(
+  "/importBulkData",
+  token,
+  verifyRole,
+  upload.single("file"),
+  importBulkData,
+);

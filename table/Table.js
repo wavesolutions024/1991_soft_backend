@@ -104,6 +104,7 @@ id INT AUTO_INCREMENT PRIMARY KEY,
 franchiesCode INT NOT NULL,
 name VARCHAR(255) NOT NULL,
 date DATE NOT NULL,
+service VARCHAR(100) ,
 time TIME NOT NULL,
 contactNumber VARCHAR(20) NOT NULL,
 advanceAmount DECIMAL(10,2) DEFAULT 0,
@@ -140,7 +141,6 @@ const whatsapp_daily_anyalstics = `CREATE TABLE IF NOT EXISTS whatsapp_daily_ana
     INDEX idx_template_name (template_name)
 )`;
 
-
 const expenses = `CREATE TABLE IF NOT EXISTS expenses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     franchiesCode INT NOT NULL,
@@ -154,12 +154,17 @@ const expenses = `CREATE TABLE IF NOT EXISTS expenses (
     FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
 
+const bulkData = `CREATE TABLE IF NOT EXISTS bulkData (
+id INT AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(100),
+number VARCHAR(20) UNIQUE,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`;
 
 const createTable = async (table, query) => {
   try {
     await database.query(query);
 
-     
     console.log(`${table} is created successfully`);
   } catch (error) {
     console.log(error);
@@ -177,5 +182,8 @@ export const createALLtabels = async () => {
   await createTable("appointments", appointments);
   await createTable("whatsapp_daily_analytics", whatsapp_daily_anyalstics);
   await createTable("expenses", expenses);
-
+  await createTable("bulkData", bulkData);
+  await database.query(
+    "ALTER TABLE bulkData MODIFY COLUMN number VARCHAR(20)",
+  );
 };

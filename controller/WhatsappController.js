@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import {
   createWhatsAppTemplate,
   getWhatsappAnyaltics,
+  sendBulkData,
   sendTattooSessionConfirmation,
 } from "../services/WhatsappService.js";
 import axios from "axios";
@@ -10,6 +11,7 @@ dotenv.config();
 const wpToken = process.env.WHATSAPP_VERIFY_TOKEN;
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION;
 import FormData from "form-data";
+import { database } from "../db/database.js";
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const WABA_ID = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -37,56 +39,34 @@ export const getWhatsappWebhook = (req, res) => {
   }
 };
 
-export const postWhatsappWebhook = async (req, res) => {
-  console.log("🔥🔥 WEBHOOK POST CONTROLLER HIT 🔥🔥");
+export const postWhatsappWebhook = (req, res) => {
+  // Meta la lagech response
+  res.sendStatus(200);
+
   try {
-    console.log(
-      "WhatsApp webhook received:",
-      JSON.stringify(req.body, null, 2),
-    );
-
-    // Meta ला लगेच 200
-    res.sendStatus(200);
-
     const body = req.body;
 
-    if (body.object !== "whatsapp_business_account") {
-      return;
-    }
+    if (body?.object !== "whatsapp_business_account") return;
 
     for (const entry of body.entry || []) {
       for (const change of entry.changes || []) {
         if (change.field !== "messages") continue;
 
-        const value = change.value;
+        const value = change.value || {};
 
-        // MESSAGE STATUS
         for (const status of value.statuses || []) {
-          console.log("================================");
-          console.log("MESSAGE STATUS");
-          console.log("ID:", status.id);
-          console.log("STATUS:", status.status);
-          console.log("RECIPIENT:", status.recipient_id);
-          console.log("================================");
-        }
-
-        // INCOMING MESSAGE
-        for (const message of value.messages || []) {
-          console.log("================================");
-          console.log("INCOMING MESSAGE");
-          console.log("FROM:", message.from);
-          console.log("TYPE:", message.type);
-
-          if (message.type === "text") {
-            console.log("TEXT:", message.text?.body);
-          }
-
-          console.log("================================");
+          console.log("WHATSAPP DELIVERY UPDATE", {
+            wamid: status.id,
+            status: status.status,
+            recipient: status.recipient_id,
+            timestamp: status.timestamp,
+            errors: status.errors || [],
+          });
         }
       }
     }
   } catch (error) {
-    console.error("Webhook processing error:", error);
+    console.error("WhatsApp webhook error:", error);
   }
 };
 
@@ -281,6 +261,8 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+
+
 // send appoinment message
 // export const sendAppoinmentMessage = async (req, res) => {
 //   try {
@@ -367,6 +349,54 @@ export const whatsappAnalyticsController = async (req, res) => {
       success: false,
       message: "Failed to fetch WhatsApp analytics",
       error: error.message,
+    });
+  }
+};
+
+
+export const sendBulkWhatsappMessage = async (req, res) => {
+  try {
+    const [dbresponse] = await database.query(
+      `SELECT * FROM bulkData`
+    );
+
+    const results = [];
+
+    for (const arr of dbresponse) {
+      const response = await sendBulkData({
+        customerPhone: arr.number,
+        customerName: arr.name,
+      });
+
+      results.push({
+        name: arr.name,
+        phone: arr.number,
+        success: response.success,
+        messageId: response.data?.messages?.[0]?.id || null,
+        error: response.success ? null : response.message,
+      });
+    }
+
+    const successCount = results.filter(
+      (item) => item.success
+    ).length;
+
+    const failedCount = results.length - successCount;
+
+    return res.status(200).json({
+      success: true,
+      message: "Bulk WhatsApp sending completed",
+      total: results.length,
+      successful: successCount,
+      failed: failedCount,
+      results,
+    });
+  } catch (error) {
+    console.error("WHATSAPP ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };

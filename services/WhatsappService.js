@@ -18,63 +18,64 @@ export const createWhatsAppTemplate = async () => {
     const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates`;
 
     const data = {
-      name: "artist_registration_1991_updated",
+      name: "offer_template1",
       language: "en_US",
 
       category: "UTILITY",
 
       components: [
-        // {
-        //   type: "HEADER",
-        //   format: "IMAGE",
-        //   example: {
-        //     header_handle: [
-        //       "4::aW1hZ2UvanBlZw==:ARY4aI1N86OIrY2eMYGZwtrzu8rOT5JWUCvfPQCUkz0fmLdC3NQ4-M08HLefk0rg7GGsfsE0M4jpcBxxQNgIMEZYNXTvRdszfpPfBDczbGHHQw:e:1789820186:4507499142871543:61594115907835:ARazNSAV0sMOVm9o4ko",
-        //     ],
-        //   },
-        // },
+        {
+          type: "HEADER",
+          format: "IMAGE",
+          example: {
+            header_handle: [
+              "4::aW1hZ2UvanBlZw==:ARbFshef1-1ttOkgENZt-uyIqdetPVAKgYOugnPoF5m4gIQVtw_xMymO_7EzEZgqnOjeio_khCJBMSSUanNNof8UEK2HK7pM9_BwGf7BcNhLtA:e:1793362220:4507499142871543:61594115907835:ARZDvYk0UrDIUfDLGC4",
+            ],
+          },
+        },
 
         {
           type: "BODY",
           text: `Hello {{1}},
 
-Your employee registration at 1991 Tattoo Studio has been completed successfully.
+        💥 TATTOO FESTIVAL AT BANER! 💥
 
-Employee Name: {{1}}
-Employee ID: {{2}}
-Position: {{3}}
-Salary: {{4}}
+        Kuch naya try karna hai ? Express yourself with ink at 1991 Tattoo Studio! 🎨✨
 
-Please keep your login credentials confidential.
+       🔥 EXCLUSIVE LIMITED OFFER:
+       📌 Full Sleeve Tattoo – FLAT 50% OFF
+       📌 Half Sleeve Tattoo – FLAT 40% OFF
+       📌 Body Piercing – FLAT 40% OFF
+       ⚡ Upto 50% OFF on Custom Designs!
 
-Thank you,
-1991 Tattoo Studio`,
+       ⏳  Get Free Consultation & Aftercare Guide!
+
+       📍 Location: Baner 🗾 :https://maps.app.goo.gl/68YjtnccZhTg1Scz6
+       📷 Our Work: https://www.instagram.com/1991tattoos
+       📲 Book Your Slot: 9881742686
+
+       Thank you,
+       1991 Tattoo Studio`,
 
           example: {
-            body_text: [[
-              "Prajot Surey",
-              "INK001",
-              "Tattoo Artist",
-              "10000"
-            ]]
-          }
+            body_text: [["Prajot Surey"]],
+          },
         },
         {
           type: "FOOTER",
-          text: "1991 Tattoo Studio"
-        }
-   
+          text: "1991 Tattoo Studio",
+        },
 
-        // {
-        //   type: "BUTTONS",
-        //   buttons: [
-        //     {
-        //       type: "PHONE_NUMBER",
-        //       text: "Call Us",
-        //       phone_number: "+919607009494",
-        //     },
-        //   ],
-        // },
+        {
+          type: "BUTTONS",
+          buttons: [
+            {
+              type: "PHONE_NUMBER",
+              text: "Call Us",
+              phone_number: "+919881742686",
+            },
+          ],
+        },
       ],
     };
 
@@ -378,7 +379,7 @@ export const sendempregConfirmation = async ({
   empId,
   role,
   salary,
-  aphone
+  aphone,
 }) => {
   try {
     // console.log("PHONE_NUMBER_ID:", PHONE_NUMBER_ID);
@@ -460,6 +461,78 @@ export const sendempregConfirmation = async ({
     };
   }
 };
+
+// send bulk data messsages
+
+export const sendBulkData = async ({ customerPhone, customerName }) => {
+  try {
+    const phone = String(customerPhone).replace(/\D/g, "");
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: "template",
+      template: {
+        name: "offer_template1",
+        language: {
+          code: "en_US",
+        },
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "image",
+                image: {
+                  link: "https://landing.1991tattoo.com/assets/offer.jpeg",
+                },
+              },
+            ],
+          },
+          {
+            type: "body",
+            parameters: [
+              {
+                type: "text",
+                text: String(customerName),
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const response = await axios.post(
+      `https://graph.facebook.com/v26.0/${PHONE_NUMBER_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return {
+      success: true,
+      phone,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error(
+      "WhatsApp Error:",
+      JSON.stringify(error.response?.data || error.message, null, 2)
+    );
+
+    return {
+      success: false,
+      phone: String(customerPhone),
+      message:
+        error.response?.data?.error?.message || error.message,
+    };
+  }
+};
+
 
 // --------------------------------------------------
 // Check if date is recent
