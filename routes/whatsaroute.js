@@ -1,6 +1,7 @@
 import express from "express";
-import { createWpTemplate, getImageStatus, getWhatsAppTemplates, getWhatsappWebhook, postWhatsappWebhook, sendBulkWhatsappMessage, sendMessage, uploadImageToMeta, whatsappAnalyticsController } from "../controller/WhatsappController.js";
+import { createWpTemplate, getImageStatus, getWhatsAppLogs, getWhatsAppTemplates, getWhatsappWebhook, postWhatsappWebhook, sendBulkWhatsappMessage, sendMessage, uploadImageToMeta, whatsappAnalyticsController } from "../controller/WhatsappController.js";
 import { upload } from "../utils/multer.js";
+import { token, verifyRole } from "../utils/Token.js";
 export const whatsappRoute = express.Router();
 
 
@@ -12,8 +13,9 @@ whatsappRoute.get("/getImageStatus",getImageStatus);
 whatsappRoute.post("/uploadImageToMeta", upload.fields([
     { name: "file", maxCount: 1 }
   ]), uploadImageToMeta);
-whatsappRoute.post("/sendMessage",sendMessage);
+whatsappRoute.post("/sendMessage", token, sendMessage);
+whatsappRoute.get("/whatsapp-logs", token, verifyRole, getWhatsAppLogs);
 
 whatsappRoute.get("/getWhatsappAnyaltics", whatsappAnalyticsController)
 
-whatsappRoute.get("/sendbulkmessage", sendBulkWhatsappMessage)
+whatsappRoute.get("/sendbulkmessage", token, verifyRole, sendBulkWhatsappMessage)

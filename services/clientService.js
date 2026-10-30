@@ -55,6 +55,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
     return {
       success: true,
       message: "Clients added successfully",
+      clientId: clients.insertId,
     };
   } catch (error) {
     return {

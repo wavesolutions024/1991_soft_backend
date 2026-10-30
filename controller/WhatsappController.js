@@ -5,6 +5,11 @@ import {
   sendBulkData,
   sendTattooSessionConfirmation,
 } from "../services/WhatsappService.js";
+import {
+  getWhatsAppLogs as fetchWhatsAppLogs,
+  recordIncomingWhatsAppMessage,
+  updateWhatsAppMessageStatus,
+} from "../services/whatsappLogsService.js";
 import axios from "axios";
 dotenv.config();
 
@@ -39,20 +44,42 @@ export const getWhatsappWebhook = (req, res) => {
   }
 };
 
-export const postWhatsappWebhook = (req, res) => {
-  // Meta la lagech response
-  res.sendStatus(200);
-
+export const postWhatsappWebhook = async (req, res) => {
   try {
     const body = req.body;
 
-    if (body?.object !== "whatsapp_business_account") return;
+    if (body?.object !== "whatsapp_business_account") {
+      return res.sendStatus(200);
+    }
 
     for (const entry of body.entry || []) {
       for (const change of entry.changes || []) {
         if (change.field !== "messages") continue;
 
         const value = change.value || {};
+
+        for (const message of value.messages || []) {
+          const contact = (value.contacts || []).find(
+            (item) => item.wa_id === message.from,
+          );
+          const messageText =
+            message.text?.body ??
+            message.image?.caption ??
+            message.video?.caption ??
+            message.document?.caption ??
+            message.interactive?.button_reply?.title ??
+            message.interactive?.list_reply?.title ??
+            message.button?.text ??
+            message.reaction?.emoji ??
+            `[${message.type || "WhatsApp"} message]`;
+
+          await recordIncomingWhatsAppMessage({
+            customerPhone: message.from,
+            customerName: contact?.profile?.name,
+            message: String(messageText),
+            messageId: message.id,
+          });
+        }
 
         for (const status of value.statuses || []) {
           console.log("WHATSAPP DELIVERY UPDATE", {
@@ -62,11 +89,48 @@ export const postWhatsappWebhook = (req, res) => {
             timestamp: status.timestamp,
             errors: status.errors || [],
           });
+
+          await updateWhatsAppMessageStatus({
+            messageId: status.id,
+            status: status.status,
+            error: status.errors?.length
+              ? status.errors
+                  .map((item) => item.title || item.message || item.code)
+                  .join("; ")
+              : null,
+          });
         }
       }
     }
+
+    return res.sendStatus(200);
   } catch (error) {
     console.error("WhatsApp webhook error:", error);
+    return res.sendStatus(500);
+  }
+};
+
+export const getWhatsAppLogs = async (req, res) => {
+  try {
+    const franchiesCode = req.user?.franchiesId;
+    if (!franchiesCode) {
+      return res.status(401).json({ message: "Franchise ID not found" });
+    }
+
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const size = Math.min(
+      Math.max(Number.parseInt(req.query.size, 10) || 20, 1),
+      100,
+    );
+    const result = await fetchWhatsAppLogs({ franchiesCode, page, size });
+
+    return res.status(200).json({
+      message: "success",
+      ...result,
+    });
+  } catch (error) {
+    console.error("WhatsApp logs controller error:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -227,6 +291,7 @@ export const sendMessage = async (req, res) => {
     }
 
     const response = await sendTattooSessionConfirmation({
+      franchiesCode: req.user?.franchiesId,
       customerPhone,
       customerName,
       tattoo,
@@ -366,6 +431,7 @@ export const sendBulkWhatsappMessage = async (req, res) => {
       const response = await sendBulkData({
         customerPhone: arr.number,
         customerName: arr.name,
+        franchiesCode: req.user?.franchiesId,
       });
 
       results.push({

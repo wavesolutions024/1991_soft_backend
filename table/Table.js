@@ -28,6 +28,7 @@ status ENUM('Active','Deactive') DEFAULT 'Active',
 semiVIP BOOLEAN DEFAULT FALSE,
 VIP BOOLEAN DEFAULT FALSE,
 backDateEntry TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+messageStatus ENUM('Send','Unsend'),
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (franchiesCode) REFERENCES franchies(id) ON DELETE CASCADE ON UPDATE CASCADE
 )`;
@@ -141,6 +142,22 @@ const whatsapp_daily_anyalstics = `CREATE TABLE IF NOT EXISTS whatsapp_daily_ana
     INDEX idx_template_name (template_name)
 )`;
 
+const whatsapp_message_logs = `CREATE TABLE IF NOT EXISTS whatsapp_message_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    franchiesCode INT NULL,
+    clientName VARCHAR(255) NOT NULL,
+    phoneNumber VARCHAR(20) NOT NULL,
+    direction ENUM('sent', 'reply') NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'sent',
+    wamid VARCHAR(191) NULL,
+    error TEXT NULL,
+    timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_whatsapp_logs_franchise_timestamp (franchiesCode, timestamp),
+    INDEX idx_whatsapp_logs_phone_timestamp (phoneNumber, timestamp),
+    UNIQUE KEY uq_whatsapp_logs_wamid (wamid)
+)`;
+
 const expenses = `CREATE TABLE IF NOT EXISTS expenses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     franchiesCode INT NOT NULL,
@@ -181,9 +198,8 @@ export const createALLtabels = async () => {
   await createTable("enquiry", enquiry);
   await createTable("appointments", appointments);
   await createTable("whatsapp_daily_analytics", whatsapp_daily_anyalstics);
+  await createTable("whatsapp_message_logs", whatsapp_message_logs);
   await createTable("expenses", expenses);
   await createTable("bulkData", bulkData);
-  await database.query(
-    "ALTER TABLE bulkData MODIFY COLUMN number VARCHAR(20)",
-  );
+
 };

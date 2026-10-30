@@ -3,6 +3,7 @@ dotenv.config();
 import axios from "axios";
 import { database } from "../db/database.js";
 import { WHATSAPP_TEMPLATES } from "../utils/WhatsappTemplate.js";
+import { recordOutgoingWhatsAppMessage } from "./whatsappLogsService.js";
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION;
 
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -182,6 +183,20 @@ export const sendTattooSessionConfirmation = async ({
       },
     );
 
+    await recordOutgoingWhatsAppMessage({
+      franchiesCode,
+      customerPhone: phone,
+      customerName,
+      message: [
+        "Tattoo session confirmation",
+        `Name: ${customerName ?? ""}`,
+        `Tattoo: ${tattoo ?? ""}`,
+        `Size: ${size ?? ""}`,
+        `Payment: ${payment ?? ""}`,
+      ].join("\n"),
+      messageId: response.data?.messages?.[0]?.id,
+    });
+
     // console.log("WhatsApp sent:", response.data);
 
     return {
@@ -279,6 +294,20 @@ export const sendTattooAppoinmentConfirmation = async ({
       },
     );
 
+    await recordOutgoingWhatsAppMessage({
+      franchiesCode,
+      customerPhone: phone,
+      customerName: name,
+      message: [
+        "Appointment confirmation",
+        `Name: ${name ?? ""}`,
+        `Date: ${date ?? ""}`,
+        `Time: ${time ?? ""}`,
+        `Advance: ${advance ?? ""}`,
+      ].join("\n"),
+      messageId: response.data?.messages?.[0]?.id,
+    });
+
     return {
       success: true,
       data: response.data,
@@ -356,6 +385,14 @@ export const sendBirthdayNotification = async (numbers) => {
             },
           },
         );
+
+        await recordOutgoingWhatsAppMessage({
+          franchiesCode: a.franchiesCode,
+          customerPhone: phone,
+          customerName: a.name,
+          message: `Birthday greeting\nName: ${a.name ?? ""}`,
+          messageId: response.data?.messages?.[0]?.id,
+        });
 
         console.log(`Birthday notification sent to ${phone}`);
         console.log(response.data);
@@ -442,6 +479,20 @@ export const sendempregConfirmation = async ({
       },
     );
 
+    await recordOutgoingWhatsAppMessage({
+      franchiesCode,
+      customerPhone: phone,
+      customerName: employyname,
+      message: [
+        "Employee registration",
+        `Name: ${employyname ?? ""}`,
+        `Employee ID: ${empId ?? ""}`,
+        `Role: ${role ?? ""}`,
+        `Salary: ${salary ?? ""}`,
+      ].join("\n"),
+      messageId: response.data?.messages?.[0]?.id,
+    });
+
     console.log("WhatsApp sent:", response.data);
 
     return {
@@ -464,7 +515,11 @@ export const sendempregConfirmation = async ({
 
 // send bulk data messsages
 
-export const sendBulkData = async ({ customerPhone, customerName }) => {
+export const sendBulkData = async ({
+  customerPhone,
+  customerName,
+  franchiesCode,
+}) => {
   try {
     const phone = String(customerPhone).replace(/\D/g, "");
 
@@ -512,6 +567,14 @@ export const sendBulkData = async ({ customerPhone, customerName }) => {
         },
       }
     );
+
+    await recordOutgoingWhatsAppMessage({
+      franchiesCode,
+      customerPhone: phone,
+      customerName,
+      message: `Offer message\nName: ${customerName ?? ""}`,
+      messageId: response.data?.messages?.[0]?.id,
+    });
 
     return {
       success: true,

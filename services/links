@@ -8,7 +8,7 @@
   Tattoo Care: https://1991tattoo.com/tattoo-aftercare
 
   📞 Contact:  +91 98817 42686
-
+scp -r 1991_soft_backend root@88.222.214.214:/var/www/  
   inkfly
 
     📍 Studio Location: https://maps.app.goo.gl/B6VyvioZQy73UMrq7

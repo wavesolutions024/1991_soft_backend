@@ -71,25 +71,49 @@ export const getAllExpense = async (req, res) => {
 
     const { month, year } = req.query;
 
-    const [response] = await database.query(
-      `SELECT * FROM expenses 
-      WHERE franchiesCode = ? AND MONTH(created_at) = ? 
-      AND YEAR(created_at)=?`,
-      [franchiesCode, month, year],
+    // Pagination
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+    const offset = (page - 1) * limit;
+
+    // Get total records
+    const [countResponse] = await database.query(
+      `SELECT COUNT(*) AS total 
+       FROM expenses
+       WHERE franchiesCode = ?
+       AND MONTH(created_at) = ?
+       AND YEAR(created_at) = ?`,
+      [franchiesCode, month, year]
     );
 
-    if (response?.length > 0) {
-      return res.status(200).json({
-        data: response,
-      });
-    } else {
-      return res.status(400).json({
-        messagge: "data not found",
-      });
-    }
+    const total = countResponse[0].total;
+
+    // Get paginated expenses
+    const [response] = await database.query(
+      `SELECT * FROM expenses
+       WHERE franchiesCode = ?
+       AND MONTH(created_at) = ?
+       AND YEAR(created_at) = ?
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`,
+      [franchiesCode, month, year, limit, offset]
+    );
+
+    return res.status(200).json({
+      data: response,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1
+      }
+    });
+
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: error.message
     });
   }
 };

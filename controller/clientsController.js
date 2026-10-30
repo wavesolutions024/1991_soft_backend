@@ -76,7 +76,7 @@ export const addClinets = async (req, res) => {
     const pdata = JSON.stringify(payload);
 
     if (response.success) {
-      await sendTattooSessionConfirmation({
+      const whatsappResponse = await sendTattooSessionConfirmation({
         franchiesCode:franchiesCode,
         customerPhone: payload?.mobileno,
         customerName: payload?.name,
@@ -85,6 +85,12 @@ export const addClinets = async (req, res) => {
         payment: payload?.price,
       });
 
+      if (whatsappResponse.success) {
+        await database.query(
+          `UPDATE clients SET messageStatus = 'Send' WHERE id = ?`,
+          [response.clientId],
+        );
+      }
 
       await database.query(
         `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
@@ -301,7 +307,7 @@ export const editClient = async (req, res) => {
     const pdata = JSON.stringify(payload);
 
     if (response.success) {
-       await sendTattooSessionConfirmation({
+      const whatsappResponse = await sendTattooSessionConfirmation({
         franchiesCode:franchiesCode,
         customerPhone: payload?.mobileno,
         customerName: payload?.name,
@@ -309,6 +315,13 @@ export const editClient = async (req, res) => {
         size: payload?.inch,
         payment: payload?.price,
       });
+
+      if (whatsappResponse.success) {
+        await database.query(
+          `UPDATE clients SET messageStatus = 'Send' WHERE id = ?`,
+          [clientId],
+        );
+      }
 
       const [apResponse] = await database.query(
       `SELECT * FROM appointments WHERE contactNumber = ? AND status = 'pending'`,
