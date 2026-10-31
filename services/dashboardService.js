@@ -169,40 +169,43 @@ const thisWeekClients = thisWeekClientsResult[0]?.thisWeekClients || 0;
   }
 };
 
+
 export const getMonthlyClientGrowth = async (franchiesId) => {
   try {
     const monthlyData = [];
+
     const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "Jan", "Feb", "Mar", "Apr",
+      "May", "Jun", "Jul", "Aug",
+      "Sep", "Oct", "Nov", "Dec",
     ];
 
+    const currentDate = new Date();
+
     for (let i = 11; i >= 0; i--) {
-      const monthDate = new Date();
-      monthDate.setMonth(monthDate.getMonth() - i);
+
+      // Always use 1st day of month to avoid date overflow
+      const monthDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1
+      );
+
       const year = monthDate.getFullYear();
       const month = monthDate.getMonth() + 1;
 
       const [result] = await database.query(
-        `SELECT COUNT(*) as activeClients FROM clients 
-         WHERE franchiesCode = ? 
-         AND YEAR(created_at) = ? 
+        `SELECT COUNT(*) as activeClients
+         FROM clients
+         WHERE franchiesCode = ?
+         AND YEAR(created_at) = ?
          AND MONTH(created_at) = ?`,
-        [franchiesId, year, month],
+        [franchiesId, year, month]
       );
 
       monthlyData.push({
         month: months[month - 1],
+        year,
         activeClients: result[0]?.activeClients || 0,
       });
     }
@@ -211,11 +214,12 @@ export const getMonthlyClientGrowth = async (franchiesId) => {
       success: true,
       data: {
         title: "12-Month Client Growth",
-        subtitle: "Monthly active clients",
+        subtitle: "Monthly new clients",
         yoyGrowth: "+18% YoY",
         chartData: monthlyData,
       },
     };
+
   } catch (error) {
     return {
       success: false,
@@ -223,6 +227,7 @@ export const getMonthlyClientGrowth = async (franchiesId) => {
     };
   }
 };
+
 
 export const getClientCalendar = async (
   franchiesId,
