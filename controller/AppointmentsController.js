@@ -9,7 +9,7 @@ import { sendTattooAppoinmentConfirmation } from "../services/WhatsappService.js
 
 export const addAppointment = async (req, res) => {
   try {
-    const { name, date, time, contactNumber, advanceAmount, visitPlatform } =
+    const { name, date,service, time, contactNumber, advanceAmount, visitPlatform } =
       req.body;
     const username = req.query.username || req.user?.username || "Unknown";
 
@@ -24,6 +24,7 @@ export const addAppointment = async (req, res) => {
     const payload = {
       name,
       date,
+      service,
       time,
       contactNumber,
       advanceAmount,
@@ -105,7 +106,7 @@ export const editAppointment = async (req, res) => {
   try {
     const { id } = req.query;
     const username = req.query.username || req.user?.username || "Unknown";
-    const { name, date, time, contactNumber, advanceAmount, visitPlatform } =
+    const { name, date,service, time, contactNumber, advanceAmount, visitPlatform } =
       req.body;
     const franchiesCode = req.user.franchiesId;
     if (!id) return res.status(400).json({ message: "id is required" });
@@ -114,6 +115,7 @@ export const editAppointment = async (req, res) => {
     const payload = {
       name,
       date,
+      service,
       time,
       contactNumber,
       advanceAmount,

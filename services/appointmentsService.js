@@ -15,12 +15,13 @@ export const addAppointmentService = async (payload, franchiesCode) => {
       };
     }
 
-    const query = `INSERT INTO appointments (franchiesCode,name,date,time,contactNumber,advanceAmount,visitPlatform) VALUES (?,?,?,?,?,?,?)`;
+    const query = `INSERT INTO appointments (franchiesCode,name,date,service,time,contactNumber,advanceAmount,visitPlatform) VALUES (?,?,?,?,?,?,?,?)`;
 
     const values = [
       franchiesCode,
       payload.name,
       payload.date,
+      payload.service,
       payload.time,
       payload.contactNumber,
       payload.advanceAmount || 0,
@@ -96,10 +97,11 @@ export const updateAppointmentService = async (id, payload) => {
       };
     }
 
-    const query = `UPDATE appointments SET name = ?, date = ?, time = ?, contactNumber = ?, advanceAmount = ?, visitPlatform = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
+    const query = `UPDATE appointments SET name = ?, date = ?,service=?, time = ?, contactNumber = ?, advanceAmount = ?, visitPlatform = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
     const values = [
       payload.name,
       payload.date,
+      payload.service,
       payload.time,
       payload.contactNumber,
       payload.advanceAmount || 0,
