@@ -53,3 +53,19 @@ export const getTodayBirthdayCustomers = async () => {
   return rows;
 };
 
+export const getUpcomingBirthdayCustomers = async () => {
+  const [rows] = await database.query(`
+    SELECT
+      mobileno AS num,
+      name,
+      franchiesCode
+    FROM clients
+    WHERE DATE_FORMAT(dob, '%m-%d') IN (
+      DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 1 DAY), '%m-%d'),
+      DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 2 DAY), '%m-%d')
+    )
+  `);
+
+  return rows;
+};
+
