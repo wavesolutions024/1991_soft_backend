@@ -113,10 +113,10 @@ export const addOutEnquiry = async (req, res) => {
 
 export const updateEnquiryStatus = async (req, res) => {
   try {
-    const { id } = req.query;
-    const { status } = req.body;
-    const franchiesCode = req.user.franchiesId;
-    const { username } = req.query;
+    const { id,status } = req.query;
+    
+    // const franchiesCode = req.user.franchiesId;
+    // const { username } = req.query;
     if (!id) {
       return res.status(400).json({ message: "Enquiry id is required" });
     }
@@ -143,10 +143,10 @@ export const updateEnquiryStatus = async (req, res) => {
 
     if (response.success) {
       const payloadString = JSON.stringify({ id, status });
-      await database.query(
-        `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
-        [franchiesCode, username, "Enquiry", "update status", payloadString],
-      );
+      // await database.query(
+      //   `INSERT INTO logs (franchiesCode,user,service,action,tableNames) VALUES (?,?,?,?,?)`,
+      //   [franchiesCode, username, "Enquiry", "update status", payloadString],
+      // );
 
       return res.status(200).json({ message: response.message });
     }
@@ -310,11 +310,13 @@ export const getAllLandingPageEnquiry = async (req, res) => {
    AND enquiryType = 'landing page'
    ORDER BY id DESC 
    LIMIT ? OFFSET ?`,
-      [franchiesCode, size, offset],
+      [franchiesCode, size, offset]
     );
 
     const [[{ total }]] = await database.query(
-      `SELECT COUNT(DISTINCT id) AS total FROM enquiry`,
+      `SELECT COUNT(DISTINCT id) AS total FROM enquiry WHERE franchiesCode = ? 
+   AND enquiryType = 'landing page'`,
+      [franchiesCode],
     );
 
     return res.status(200).json({

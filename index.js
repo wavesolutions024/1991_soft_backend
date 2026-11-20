@@ -37,8 +37,8 @@ app.use("/images", express.static("images"))
         "http://admin.1991tattoos.com",
         "https://landing.inkflytattoo.com",
         "http://landing.inkflytattoo.com",
-        "https://landing.1991tattoos.com",
-        "http://landing.1991tattoos.com"
+        "https://landing.1991tattoo.com",
+        "http://landing.1991tattoo.com"
       ],
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
