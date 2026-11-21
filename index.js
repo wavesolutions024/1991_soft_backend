@@ -41,7 +41,7 @@ app.use("/images", express.static("images"))
         "http://landing.1991tattoo.com"
       ],
       credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
       allowedHeaders: [
         "Content-Type",
         "Authorization",

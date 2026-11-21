@@ -247,6 +247,8 @@ export const getAllEnquiry = async (req, res) => {
    ORDER BY id DESC 
    LIMIT ? OFFSET ?`,
       [franchiesCode, size, offset],
+
+      
     );
 
     const [[{ total }]] = await database.query(

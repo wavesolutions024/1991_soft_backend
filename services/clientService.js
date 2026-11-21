@@ -19,7 +19,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
     }
 
     
-    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry,semiVIP,VIP) VALUES (?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?)`;
+    const query = `INSERT INTO clients (franchiesCode,a_id,name,gender,email,mobileno,tattooArtist,paymentType, clientType,referallName,address,dob,backDateEntry,serviceType,semiVIP,VIP) VALUES (?,?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?)`;
     const values = [
       franchiesCode,
       id,
@@ -34,6 +34,7 @@ export const addClientsService = async (payload, image, franchiesCode,id) => {
       payload.address,
       payload.dob,
       backDate,
+      payload.serviceType,
       payload.price >= 8000 && payload.price < 20000 ? true : false,
       payload.price >= 20000 ? true : false
     ];
@@ -77,7 +78,7 @@ const [existData] = await database.query(`SELECT backDateEntry FROM clients WHER
 
 
     await database.query(
-      `UPDATE clients SET name=?, gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=?,backDateEntry=? WHERE id=?`,
+      `UPDATE clients SET name=?, gender=?,email=?,mobileno=?,address=?,tattooArtist=?,clientType=?,referallName=?,dob=?,paymentType=?,serviceType=?,backDateEntry=? WHERE id=?`,
       [
         payload.name,
         payload.gender,
@@ -89,6 +90,7 @@ const [existData] = await database.query(`SELECT backDateEntry FROM clients WHER
         payload.referallName,
         payload.dob,
         payload.paymentType,
+        payload.serviceType,
         backDate,
         id,
       ]
