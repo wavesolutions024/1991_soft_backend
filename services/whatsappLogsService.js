@@ -53,6 +53,18 @@ export const recordIncomingWhatsAppMessage = async ({
 }) => {
   const phone = normalizePhone(customerPhone);
   const client = await findClientByPhone(phone);
+  let previousMessage = null;
+  if (!client) {
+    const [previousMessages] = await database.query(
+      `SELECT franchiesCode, clientName
+       FROM whatsapp_message_logs
+       WHERE phoneNumber = ? AND direction = 'sent'
+       ORDER BY timestamp DESC, id DESC
+       LIMIT 1`,
+      [phone],
+    );
+    previousMessage = previousMessages[0] ?? null;
+  }
 
   await database.query(
     `INSERT INTO whatsapp_message_logs
@@ -60,8 +72,8 @@ export const recordIncomingWhatsAppMessage = async ({
      VALUES (?, ?, ?, 'reply', ?, 'received', ?)
      ON DUPLICATE KEY UPDATE wamid = VALUES(wamid)`,
     [
-      client?.franchiesCode ?? null,
-      client?.name || customerName || phone,
+      client?.franchiesCode ?? previousMessage?.franchiesCode ?? null,
+      client?.name || previousMessage?.clientName || customerName || phone,
       phone,
       message,
       messageId ?? null,
@@ -92,6 +104,11 @@ export const getWhatsAppLogs = async ({ franchiesCode, page, size }) => {
      LIMIT ? OFFSET ?`,
     [franchiesCode, size, offset],
   );
+  const data = rows.map((row) => ({
+    ...row,
+    seen: row.direction === "sent" && row.status === "read",
+    isUserReply: row.direction === "reply",
+  }));
   const [[{ total }]] = await database.query(
     `SELECT COUNT(*) AS total
      FROM whatsapp_message_logs
@@ -100,7 +117,7 @@ export const getWhatsAppLogs = async ({ franchiesCode, page, size }) => {
   );
 
   return {
-    data: rows,
+    data,
     pagination: {
       page,
       size,
